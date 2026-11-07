@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MultiVerse - Download App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  
+  <style>
+    /* Specific styles for the download page */
+    .download-hero { text-align: center; margin-bottom: 30px; padding-top: 20px; }
+    .app-logo-large { 
+      width: 110px; height: 110px; 
+      margin: 0 auto 20px; 
+      filter: drop-shadow(0 0 25px var(--primary-glow));
+      animation: floatLogo 4s ease-in-out infinite;
+    }
+    @keyframes floatLogo {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .download-btn {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 18px;
+      background: linear-gradient(135deg, #10B981, #059669); /* Emerald Green */
+      border: none; border-radius: 16px;
+      color: white; font-family: 'Orbitron', sans-serif;
+      font-weight: 700; font-size: 16px; letter-spacing: 1px;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+      transition: all 0.3s ease;
+      animation: pulseBtn 2s infinite;
+    }
+    .download-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4); }
+    .download-btn svg { width: 24px; height: 24px; fill: currentColor; }
+    
+    @keyframes pulseBtn {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+      70% { box-shadow: 0 0 0 15px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .install-steps { list-style: none; padding: 0; margin: 0; }
+    .install-steps li { 
+      display: flex; align-items: flex-start; gap: 15px; 
+      padding: 12px 0; border-bottom: 1px solid var(--glass-border); 
+      font-size: 14px; color: var(--text-muted); line-height: 1.5;
+    }
+    .install-steps li:last-child { border-bottom: none; }
+    .step-num { 
+      flex-shrink: 0; width: 28px; height: 28px; 
+      background: rgba(6, 182, 212, 0.15); color: var(--accent); 
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+      font-family: 'Orbitron'; font-weight: 700; font-size: 13px;
+    }
+
+    .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+    .feature-card { text-align: center; padding: 20px 15px; }
+    .feature-icon { font-size: 26px; margin-bottom: 8px; }
+    .feature-title { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .feature-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+  </style>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  
+  <div id="universeLoader" class="loader-overlay">
+    <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
+    <div class="loader-text">ENTERING MULTIVERSE</div>
+  </div>
+
+  <header class="app-header glass">
+    <a href="profile.html" class="icon-btn" style="text-decoration:none;">‹</a>
+    <div class="logo" style="font-size: 18px;">DOWNLOAD APP</div>
+    <div style="width: 40px;"></div>
+  </header>
+
+  <main class="main-content">
+    
+    <!-- Hero Section -->
+    <div class="download-hero">
+      <img src="assets/img/logo-loader.svg" alt="MultiVerse Logo" class="app-logo-large" />
+      <h1 class="page-title" style="font-size: 26px; margin-bottom: 8px;">Take MultiVerse<br>Everywhere</h1>
+      <p class="page-subtitle" style="margin: 0 auto; max-width: 350px;">Install our native Android app for a faster, smoother mining experience.</p>
+    </div>
+
+    <!-- Download Card -->
+    <div class="glass glass-card" style="margin-bottom: 20px;">
+      <h3 style="font-family: 'Orbitron'; font-size: 15px; margin-bottom: 15px; color: var(--text-main);">🤖 Android APK</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Download and install the latest version (v1.0) directly to your device.</p>
+      
+      <!-- Link to your APK file in the repository -->
+      <a href="assets/app/multiverse.apk" download class="download-btn">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        DOWNLOAD APK
+      </a>
+    </div>
+
+    <!-- Installation Instructions -->
+    <div class="glass glass-card" style="margin-bottom: 20px;">
+      <h3 style="font-family: 'Orbitron'; font-size: 15px; margin-bottom: 15px; color: var(--accent);">📱 Installation Guide</h3>
+      <ul class="install-steps">
+        <li>
+          <span class="step-num">1</span>
+          <span>Tap the <strong style="color: var(--text-main);">Download APK</strong> button above. The file will save to your device.</span>
+        </li>
+        <li>
+          <span class="step-num">2</span>
+          <span>Open the downloaded file. If prompted, allow <strong style="color: var(--text-main);">"Install from Unknown Sources"</strong> in your settings.</span>
+        </li>
+        <li>
+          <span class="step-num">3</span>
+          <span>Tap <strong style="color: var(--text-main);">Install</strong> and wait a few seconds. Open MultiVerse and start mining!</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- App Features -->
+    <h3 style="font-family: 'Orbitron'; font-size: 15px; margin-bottom: 15px; color: var(--text-main);">Why use the App?</h3>
+    <div class="feature-grid">
+      <div class="glass glass-card feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">Lightning Fast</div>
+        <div class="feature-desc">Optimized native performance.</div>
+      </div>
+      <div class="glass glass-card feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Secure & Safe</div>
+        <div class="feature-desc">Bank-grade encryption.</div>
+      </div>
+      <div class="glass glass-card feature-card">
+        <div class="feature-icon">🔔</div>
+        <div class="feature-title">Push Alerts</div>
+        <div class="feature-desc">Never miss a payout.</div>
+      </div>
+      <div class="glass glass-card feature-card">
+        <div class="feature-icon">🌌</div>
+        <div class="feature-title">Offline Mode</div>
+        <div class="feature-desc">View data without internet.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav glass">
+    <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Miners</span></a>
+    <a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
+    <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Team</span></a>
+    <a href="profile.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
+  </nav>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/api-client.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
