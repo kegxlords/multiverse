@@ -124,8 +124,12 @@
   <script>
     async function callAdmin(action, payload = {}) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
-      const res = await fetch('/api/admin-actions', {
-        method: 'POST',
+      
+      // Route Settings and Stats to the new file
+      const endpoint = (action === 'get_stats' || action === 'update_settings') ? '/api/admin-settings' : '/api/admin-actions';
+
+      const res = await fetch(endpoint, {
+        method: 'POST', // Note: get_stats in admin-settings.js should be changed to POST in the HTML call, or change the JS file to accept GET. Let's just use POST for both to keep it simple.
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
         body: JSON.stringify({ action, payload })
       });
