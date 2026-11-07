@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-content { background: #0f172a; border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; text-align: center; position: relative; }
+    .modal-close { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+  </style>
 </head>
 <body>
   <div class="universe-bg"></div>
@@ -46,16 +52,33 @@
       <a href="deposit.html" class="glass action-btn"><div class="action-icon">💳</div><span>Deposit</span></a>
       <a href="withdraw.html" class="glass action-btn"><div class="action-icon">💸</div><span>Withdraw</span></a>
       <a href="gift-code.html" class="glass action-btn"><div class="action-icon">🎁</div><span>Gift Code</span></a>
-      <!-- Telegram Link (Replace with your actual channel/group link) -->
-      <a href="https://t.me/your_telegram_channel" target="_blank" class="glass action-btn"><div class="action-icon">✈️</div><span>Telegram</span></a>
+      <a id="telegramBtn" href="#" target="_blank" class="glass action-btn"><div class="action-icon">✈️</div><span>Telegram</span></a>
     </div>
 
     <h3 style="font-family: 'Orbitron'; font-size: 16px; margin-bottom: 15px;">Active Miners</h3>
     <div id="activeMinersList" class="miner-list">
-      <!-- Populated by JS -->
       <div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading miners...</div>
     </div>
   </main>
+
+  <!-- Welcome Modal -->
+  <div id="welcomeModal" class="modal-overlay">
+    <div class="modal-content glass">
+      <button onclick="closeWelcomeModal()" class="modal-close">✕</button>
+      <div style="font-size: 40px; margin-bottom: 15px;">🌌</div>
+      <h2 style="font-family: 'Orbitron'; font-size: 22px; margin-bottom: 10px; color: var(--accent);">Welcome Back!</h2>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">Your cosmic mining operations are active. Join our community for exclusive tips, gift codes, and support!</p>
+      
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <a id="waLink" href="#" target="_blank" class="btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <span>💬</span> Join WhatsApp Group
+        </a>
+        <a id="tgLink" href="#" target="_blank" class="btn-primary" style="background: linear-gradient(135deg, #0088cc, #005f8f); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <span>✈️</span> Join Telegram Channel
+        </a>
+      </div>
+    </div>
+  </div>
 
   <nav class="bottom-nav glass">
     <a href="dashboard.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
@@ -69,6 +92,8 @@
   <script src="assets/js/auth-guard.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
+    function closeWelcomeModal() { document.getElementById('welcomeModal').classList.remove('show'); }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       if (!session) return;
@@ -103,6 +128,17 @@
         list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">No active miners. <a href="rent-miners.html" style="color: var(--accent);">Rent one now!</a></div>';
       }
       document.getElementById('dashYield').innerText = '₦' + dailyYield.toLocaleString();
+
+      // Fetch Settings for Links
+      const { data: settings } = await window.supabaseClient.from('settings').select('*').in('key', ['whatsapp_link', 'telegram_link']);
+      const getLink = (k) => settings?.find(s => s.key === k)?.value || '#';
+      
+      document.getElementById('waLink').href = getLink('whatsapp_link');
+      document.getElementById('tgLink').href = getLink('telegram_link');
+      document.getElementById('telegramBtn').href = getLink('telegram_link');
+      
+      // Show welcome modal on every visit
+      document.getElementById('welcomeModal').classList.add('show');
     });
   </script>
 </body>
