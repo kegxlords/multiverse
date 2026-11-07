@@ -75,12 +75,31 @@ export default async function handler(req, res) {
       }
 
       case 'manual_credit': {
-        await supabase.rpc('manual_credit_user', { p_user_id: payload.user_id, p_amount: payload.amount });
+        const amount = Number(payload.amount);
+        if (!Number.isFinite(amount) || amount <= 0) throw new Error('Credit amount must be greater than zero');
+        const { error } = await supabase.rpc('manual_credit_user', { p_user_id: payload.user_id, p_amount: amount });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Wallet credited manually' });
       }
 
+      case 'adjust_balance': {
+        const amount = Number(payload.amount);
+        if (!Number.isFinite(amount) || amount === 0) throw new Error('Balance adjustment cannot be zero');
+        if (!payload.user_id) throw new Error('User is required');
+        const { error } = await supabase.rpc('manual_credit_user', {
+          p_user_id: payload.user_id,
+          p_amount: amount
+        });
+        if (error) throw new Error(error.message);
+        return res.json({
+          success: true,
+          message: amount > 0 ? 'Funds added successfully' : 'Funds deducted successfully'
+        });
+      }
+
       case 'assign_miner': {
-        await supabase.rpc('admin_assign_miner', { p_user_id: payload.user_id, p_miner_id: payload.miner_id });
+        const { error } = await supabase.rpc('admin_assign_miner', { p_user_id: payload.user_id, p_miner_id: payload.miner_id });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Miner assigned successfully' });
       }
 
