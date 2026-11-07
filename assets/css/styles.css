@@ -82,16 +82,8 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
   min-height: 100vh;
 }
 
-.page-title {
-  font-size: 24px;
-  margin-bottom: 8px;
-}
-
-.page-subtitle {
-  color: var(--text-muted);
-  font-size: 15px;
-  margin-bottom: 24px;
-}
+.page-title { font-size: 24px; margin-bottom: 8px; }
+.page-subtitle { color: var(--text-muted); font-size: 15px; margin-bottom: 24px; }
 
 /* ==========================================
    FLOATING BOTTOM NAVIGATION
@@ -121,31 +113,19 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
   height: 100%;
   color: var(--text-muted);
   transition: all 0.3s ease;
-  position: relative;
 }
 
 .nav-item svg {
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   fill: currentColor;
   margin-bottom: 4px;
   transition: all 0.3s ease;
 }
 
-.nav-item span {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
+.nav-item span { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
 
-.nav-item.active {
-  color: var(--accent);
-}
-
-.nav-item.active svg {
-  filter: drop-shadow(0 0 8px var(--accent-glow));
-  transform: translateY(-2px);
-}
+.nav-item.active { color: var(--accent); }
+.nav-item.active svg { filter: drop-shadow(0 0 8px var(--accent-glow)); transform: translateY(-2px); }
 
 /* ==========================================
    LOGIN PAGE SPECIFIC (Index)
@@ -195,6 +175,7 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
 
 .form-group { margin-bottom: 16px; text-align: left; }
 .form-label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+
 .form-input {
   width: 100%; padding: 14px 16px;
   background: rgba(255,255,255,0.05);
@@ -209,7 +190,7 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
 .form-input:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); box-shadow: 0 0 0 3px var(--accent-glow); }
 
 .btn-primary {
-  width: 100%; padding: 14px;
+  width: 100%; padding: 14px; margin-top: 10px;
   background: linear-gradient(135deg, var(--primary), var(--accent));
   border: none; border-radius: 12px;
   color: white; font-family: 'Orbitron', sans-serif;
