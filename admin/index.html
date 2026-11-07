@@ -3,135 +3,109 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MultiVerse - Admin Command Center</title>
+  <title>MultiVerse - Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/theme.css" />
   <link rel="stylesheet" href="../assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .admin-top-nav { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: blur(10px); position: sticky; top: var(--header-height); z-index: 90; }
+    .admin-top-nav button { white-space: nowrap; padding: 10px 20px; background: transparent; border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-muted); font-family: 'Rajdhani'; font-weight: 700; cursor: pointer; transition: 0.3s; }
+    .admin-top-nav button.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .admin-content { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-content { background: #0f172a; border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+  </style>
 </head>
 <body>
   <div class="universe-bg"></div>
-  
-  <header class="app-header glass" style="z-index: 200;">
-    <div class="logo"><div class="logo-icon">M</div> MULTIVERSE <span style="font-size: 12px; color: var(--warning); margin-left: 10px;">ADMIN</span></div>
-    <div class="header-actions"><a href="../dashboard.html" class="icon-btn">Exit</a></div>
+  <header class="app-header glass" style="z-index: 100;">
+    <div class="logo"><div class="logo-icon">M</div> ADMIN</div>
+    <a href="../dashboard.html" class="icon-btn">Exit</a>
   </header>
 
-  <div class="admin-container">
-    <!-- Sidebar Navigation -->
-    <aside class="admin-sidebar glass">
-      <button class="admin-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
-      <button class="admin-tab" onclick="showTab('settings')">⚙️ Settings</button>
-      <button class="admin-tab" onclick="showTab('gift-codes')">🎁 Gift Codes</button>
-      <button class="admin-tab" onclick="showTab('miners')">⛏️ Miners</button>
-      <button class="admin-tab" onclick="showTab('deposits')">💳 Deposits</button>
-      <button class="admin-tab" onclick="showTab('withdrawals')">💸 Withdrawals</button>
-      <button class="admin-tab" onclick="showTab('users')">👥 Users</button>
-    </aside>
+  <div class="admin-top-nav glass">
+    <button class="active" onclick="showTab('dashboard')">Dashboard</button>
+    <button onclick="showTab('deposits')">Deposits</button>
+    <button onclick="showTab('withdrawals')">Withdrawals</button>
+    <button onclick="showTab('users')">Users</button>
+    <button onclick="showTab('gift-codes')">Gift Codes</button>
+    <button onclick="showTab('settings')">Settings</button>
+  </div>
 
-    <!-- Main Content -->
-    <main class="admin-main">
-      
-      <!-- DASHBOARD TAB -->
-      <section id="dashboard" class="admin-section active">
-        <h2 class="page-title">Overview</h2>
-        <div class="admin-grid">
-          <div class="admin-card stat-card"><div class="label">Total Users</div><div class="value text-accent" id="statUsers">0</div></div>
-          <div class="admin-card stat-card"><div class="label">Completed Deposits</div><div class="value text-success" id="statDeposits">0</div></div>
-          <div class="admin-card stat-card"><div class="label">Pending Actions</div><div class="value text-warning" id="statPending">0</div></div>
-        </div>
-      </section>
+  <main class="admin-content">
+    <!-- DASHBOARD -->
+    <section id="dashboard" class="tab-content">
+      <h2 class="page-title">Overview</h2>
+      <div class="admin-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Users</div><div class="value text-accent" id="statUsers" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Deposits</div><div class="value text-warning" id="statPendDep" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Withdrawals</div><div class="value text-danger" id="statPendWith" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+      </div>
+    </section>
 
-      <!-- SETTINGS TAB -->
-      <section id="settings" class="admin-section">
-        <h2 class="page-title">Global Settings</h2>
-        <div class="admin-card">
-          <form id="settingsForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <div class="form-group"><label class="form-label">Welcome Bonus (₦)</label><input type="number" name="welcome_bonus_amount" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Min Withdrawal (₦)</label><input type="number" name="min_withdrawal" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Withdrawal Fee (%)</label><input type="number" name="withdrawal_fee_percent" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Min Deposit (₦)</label><input type="number" name="deposit_min_amount" class="form-input" /></div>
-            
-            <div class="form-group"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Account Number</label><input type="text" name="account_number" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Account Name</label><input type="text" name="account_name" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Telegram Link</label><input type="text" name="telegram_link" class="form-input" /></div>
+    <!-- DEPOSITS -->
+    <section id="deposits" class="tab-content" style="display:none;">
+      <h2 class="page-title">Pending Deposits</h2>
+      <div id="depositList"></div>
+    </section>
 
-            <div class="form-group"><label class="form-label">Weekday Start (e.g., 08:00)</label><input type="text" name="withdrawal_weekday_start" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Weekday End (e.g., 18:00)</label><input type="text" name="withdrawal_weekday_end" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Weekend Start (e.g., 10:00)</label><input type="text" name="withdrawal_weekend_start" class="form-input" /></div>
-            <div class="form-group"><label class="form-label">Weekend End (e.g., 17:00)</label><input type="text" name="withdrawal_weekend_end" class="form-input" /></div>
+    <!-- WITHDRAWALS -->
+    <section id="withdrawals" class="tab-content" style="display:none;">
+      <h2 class="page-title">Pending Withdrawals</h2>
+      <div id="withdrawalList"></div>
+    </section>
 
-            <div style="grid-column: 1 / -1;">
-              <button type="submit" class="btn-primary">SAVE SETTINGS</button>
-            </div>
-          </form>
-        </div>
-      </section>
+    <!-- USERS -->
+    <section id="users" class="tab-content" style="display:none;">
+      <h2 class="page-title">All Users</h2>
+      <div id="userList"></div>
+    </section>
 
-      <!-- GIFT CODES TAB -->
-      <section id="gift-codes" class="admin-section">
-        <h2 class="page-title">Gift Code Manager</h2>
-        <div class="admin-card">
-          <h3 style="margin-bottom: 15px;">Create New Code</h3>
-          <form id="giftForm" style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <input type="text" id="newCode" class="form-input" placeholder="CODE NAME" required style="text-transform: uppercase;" />
-            <input type="number" id="newAmount" class="form-input" placeholder="Amount (₦)" required />
-            <button type="submit" class="btn-primary" style="width: auto; padding: 0 25px;">CREATE</button>
-          </form>
-          <div id="giftList"></div>
-        </div>
-      </section>
+    <!-- GIFT CODES -->
+    <section id="gift-codes" class="tab-content" style="display:none;">
+      <h2 class="page-title">Gift Codes</h2>
+      <div class="glass glass-card" style="margin-bottom:20px;">
+        <form id="giftForm" style="display:flex; gap:10px;">
+          <input type="text" id="newCode" class="form-input" placeholder="CODE" required style="text-transform:uppercase;">
+          <input type="number" id="newAmount" class="form-input" placeholder="Amount" required>
+          <button type="submit" class="btn-primary" style="width:auto;">Create</button>
+        </form>
+      </div>
+      <div id="giftList"></div>
+    </section>
 
-      <!-- DEPOSITS TAB -->
-      <section id="deposits" class="admin-section">
-        <h2 class="page-title">Pending Deposits</h2>
-        <div class="admin-card">
-          <table class="admin-table">
-            <thead><tr><th>User</th><th>Amount</th><th>Reference</th><th>Date</th><th>Actions</th></tr></thead>
-            <tbody id="depositTable"></tbody>
-          </table>
-        </div>
-      </section>
+    <!-- SETTINGS -->
+    <section id="settings" class="tab-content" style="display:none;">
+      <h2 class="page-title">Global Settings</h2>
+      <div class="glass glass-card">
+        <form id="settingsForm" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div class="form-group"><label class="form-label">Welcome Bonus</label><input type="number" name="welcome_bonus_amount" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Min Withdrawal</label><input type="number" name="min_withdrawal" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Withdrawal Fee (%)</label><input type="number" name="withdrawal_fee_percent" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Account Number</label><input type="text" name="account_number" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Account Name</label><input type="text" name="account_name" class="form-input"></div>
+          <div style="grid-column: 1/-1;"><button type="submit" class="btn-primary">Save Settings</button></div>
+        </form>
+      </div>
+    </section>
+  </main>
 
-      <!-- WITHDRAWALS TAB -->
-      <section id="withdrawals" class="admin-section">
-        <h2 class="page-title">Pending Withdrawals</h2>
-        <div class="admin-card">
-          <table class="admin-table">
-            <thead><tr><th>User</th><th>Amount</th><th>Bank Details</th><th>Date</th><th>Actions</th></tr></thead>
-            <tbody id="withdrawalTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- USERS TAB -->
-      <section id="users" class="admin-section">
-        <h2 class="page-title">User Management</h2>
-        <div class="admin-card">
-          <table class="admin-table">
-            <thead><tr><th>Name</th><th>Email</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="userTable"></tbody>
-          </table>
-        </div>
-      </section>
-
-    </main>
+  <!-- User Detail Modal -->
+  <div id="userModal" class="modal-overlay">
+    <div class="modal-content glass">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h3 style="font-family:'Orbitron';">User Details</h3>
+        <button onclick="closeModal()" class="icon-btn">✕</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
   </div>
 
   <script src="../assets/js/api-client.js"></script>
-  <script src="../assets/js/auth-guard.js"></script>
   <script>
-    // Tab Switching
-    function showTab(tabId) {
-      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      event.target.classList.add('active');
-      loadData(tabId);
-    }
-
-    // Secure API Caller
     async function callAdmin(action, payload = {}) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       const res = await fetch('/api/admin-actions', {
@@ -142,40 +116,108 @@
       return await res.json();
     }
 
-    // Load Data based on tab
-    async function loadData(tab) {
-      if (tab === 'dashboard') {
-        const res = await callAdmin('get_stats');
-        if (res.success) {
-          document.getElementById('statUsers').textContent = res.data.users;
-          document.getElementById('statDeposits').textContent = res.data.deposits;
-          document.getElementById('statPending').textContent = res.data.pending;
-        }
-      }
-      // Additional data loading logic for other tabs would go here (fetching transactions, users, etc.)
+    function showTab(id) {
+      document.querySelectorAll('.tab-content').forEach(s => s.style.display = 'none');
+      document.querySelectorAll('.admin-top-nav button').forEach(b => b.classList.remove('active'));
+      document.getElementById(id).style.display = 'block';
+      event.target.classList.add('active');
+      loadTabData(id);
     }
 
-    // Settings Form
-    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    async function loadTabData(tab) {
+      if (tab === 'dashboard') {
+        const res = await callAdmin('get_stats');
+        if(res.success) {
+          document.getElementById('statUsers').textContent = res.data.users;
+          document.getElementById('statPendDep').textContent = res.data.pendingDeposits || 0;
+          document.getElementById('statPendWith').textContent = res.data.pendingWithdrawals || 0;
+        }
+      } else if (tab === 'deposits') {
+        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'deposit').eq('status', 'pending').order('created_at', {ascending: false});
+        document.getElementById('depositList').innerHTML = data?.map(d => `
+          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-weight:700;">${d.profiles?.full_name || 'Unknown'}</div><div style="font-size:12px; color:var(--text-muted);">${d.reference} • ₦${Number(d.amount).toLocaleString()}</div></div>
+            <div style="display:flex; gap:5px;">
+              <button class="btn-sm btn-approve" onclick="approveTx('${d.id}', 'deposit')">Approve</button>
+              <button class="btn-sm btn-reject" onclick="rejectTx('${d.id}', 'deposit')">Reject</button>
+            </div>
+          </div>`).join('') || '<p class="text-muted">No pending deposits.</p>';
+      } else if (tab === 'withdrawals') {
+        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'withdrawal').eq('status', 'pending').order('created_at', {ascending: false});
+        document.getElementById('withdrawalList').innerHTML = data?.map(d => `
+          <div class="glass glass-card" style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+              <div><div style="font-weight:700;">${d.profiles?.full_name}</div><div style="font-size:12px; color:var(--text-muted);">₦${Number(d.amount).toLocaleString()}</div></div>
+              <div style="display:flex; gap:5px;">
+                <button class="btn-sm btn-approve" onclick="approveTx('${d.id}', 'withdrawal')">Paid</button>
+                <button class="btn-sm btn-reject" onclick="rejectTx('${d.id}', 'withdrawal')">Reject</button>
+              </div>
+            </div>
+            <div style="font-size:12px; color:var(--text-muted);">Bank: ${d.bank_name} | Acct: ${d.account_number} | Name: ${d.account_name}</div>
+          </div>`).join('') || '<p class="text-muted">No pending withdrawals.</p>';
+      } else if (tab === 'users') {
+        const { data } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').order('created_at', {ascending: false});
+        document.getElementById('userList').innerHTML = data?.map(u => `
+          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="viewUser('${u.id}')">
+            <div>
+              <div style="font-weight:700;">${u.full_name || 'Unknown'} ${u.is_admin ? '<span class="tag tag-level">ADMIN</span>' : ''}</div>
+              <div style="font-size:12px; color:var(--text-muted);">${u.email} • Bal: ₦${Number(u.wallets?.balance || 0).toLocaleString()}</div>
+            </div>
+            <button class="btn-sm btn-action">View</button>
+          </div>`).join('') || '<p class="text-muted">No users found.</p>';
+      } else if (tab === 'gift-codes') {
+        const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', {ascending: false});
+        document.getElementById('giftList').innerHTML = data?.map(g => `
+          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between;">
+            <div><div style="font-family:'Orbitron'; font-weight:700;">${g.code}</div><div style="font-size:12px; color:var(--text-muted);">₦${Number(g.amount).toLocaleString()} • ${g.is_used ? 'Used' : 'Active'}</div></div>
+          </div>`).join('') || '<p class="text-muted">No gift codes.</p>';
+      } else if (tab === 'settings') {
+        const { data } = await window.supabaseClient.from('settings').select('*');
+        const form = document.getElementById('settingsForm');
+        data.forEach(s => { if(form[s.key]) form[s.key].value = s.value; });
+      }
+    }
+
+    async function approveTx(id, type) { await callAdmin(`approve_${type}`, {id}); loadTabData(type+'s'); }
+    async function rejectTx(id, type) { await callAdmin(`reject_${type}`, {id}); loadTabData(type+'s'); }
+
+    async function viewUser(userId) {
+      const { data: user } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').eq('id', userId).single();
+      const { count: teamCount } = await window.supabaseClient.from('profiles').select('*', {count:'exact', head:true}).eq('referred_by', userId);
+      const { data: txs } = await window.supabaseClient.from('transactions').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(5);
+
+      document.getElementById('modalBody').innerHTML = `
+        <div style="margin-bottom:15px;"><strong>Name:</strong> ${user.full_name}<br><strong>Email:</strong> ${user.email}<br><strong>Balance:</strong> ₦${Number(user.wallets?.balance||0).toLocaleString()}<br><strong>Total Deposited:</strong> ₦${Number(user.total_deposited||0).toLocaleString()}<br><strong>Team Size:</strong> ${teamCount||0}</div>
+        <h4 style="margin-bottom:10px; font-family:'Orbitron'; font-size:14px;">Recent Transactions</h4>
+        ${txs?.map(t => `<div style="font-size:12px; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between;"><span>${t.type}</span><span>₦${Number(t.amount).toLocaleString()} (${t.status})</span></div>`).join('') || 'No transactions'}
+        <div style="margin-top:20px; display:flex; gap:10px;">
+          <button class="btn-sm ${user.is_active ? 'btn-reject' : 'btn-approve'}" onclick="toggleBan('${userId}', ${user.is_active})">${user.is_active ? 'Ban User' : 'Unban User'}</button>
+        </div>
+      `;
+      document.getElementById('userModal').classList.add('show');
+    }
+
+    async function toggleBan(userId, currentStatus) {
+      await callAdmin('toggle_ban', {user_id: userId, is_active: currentStatus});
+      closeModal(); loadTabData('users');
+    }
+
+    function closeModal() { document.getElementById('userModal').classList.remove('show'); }
+
+    document.getElementById('giftForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      const payload = Object.fromEntries(formData.entries());
-      const res = await callAdmin('update_settings', payload);
-      alert(res.message || res.error);
+      await callAdmin('create_gift_code', { code: document.getElementById('newCode').value, amount: document.getElementById('newAmount').value });
+      e.target.reset(); loadTabData('gift-codes');
     });
 
-    // Gift Code Form
-    document.getElementById('giftForm').addEventListener('submit', async (e) => {
+    document.getElementById('settingsForm').addEventListener('submit', async e => {
       e.preventDefault();
-      const code = document.getElementById('newCode').value;
-      const amount = document.getElementById('newAmount').value;
-      const res = await callAdmin('create_gift_code', { code, amount });
-      alert(res.message || res.error);
-      e.target.reset();
+      const payload = Object.fromEntries(new FormData(e.target));
+      await callAdmin('update_settings', payload);
+      showToast('Settings saved!', 'success');
     });
 
-    // Initial Load
-    document.addEventListener('DOMContentLoaded', () => loadData('dashboard'));
+    document.addEventListener('DOMContentLoaded', () => loadTabData('dashboard'));
   </script>
 </body>
 </html>
