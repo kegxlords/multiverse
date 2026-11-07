@@ -55,7 +55,7 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
       const password = document.getElementById('password').value;
       const btn = document.getElementById('loginBtn');
       const alertBox = document.getElementById('alertBox');
@@ -67,7 +67,12 @@
       const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
 
       if (error) {
-        alertBox.textContent = error.message;
+        const message = /email not confirmed/i.test(error.message)
+          ? 'Please verify your email address before signing in. Check your inbox and spam folder.'
+          : /invalid login credentials/i.test(error.message)
+            ? 'Invalid email or password. If you just registered, verify your email first, then try again.'
+            : error.message;
+        alertBox.textContent = message;
         alertBox.className = 'alert alert-error show';
         btn.disabled = false;
         btn.innerText = 'INITIATE LOGIN';
