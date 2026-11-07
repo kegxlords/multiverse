@@ -1,72 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MultiVerse - Wallet</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/theme.css" />
-  <link rel="stylesheet" href="assets/css/styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MultiVerse — Wallet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/css/theme.css" /><link rel="stylesheet" href="assets/css/styles.css" /><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .wallet-hero{position:relative;overflow:hidden;padding:27px 22px;margin-bottom:18px;border-radius:24px;background:linear-gradient(135deg,rgba(6,182,212,.2),rgba(139,92,246,.2));border:1px solid var(--glass-border)}.wallet-hero .glow{top:50%;left:50%;transform:translate(-50%,-50%);width:240px;height:240px}.wallet-label{position:relative;z-index:1;color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:1.5px}.wallet-balance{position:relative;z-index:1;margin:10px 0 16px;font:700 clamp(28px,8vw,42px) Orbitron;word-break:break-word}.wallet-meta{position:relative;z-index:1;display:flex;justify-content:space-between;gap:10px;color:var(--text-muted);font-size:13px}.wallet-meta strong{color:var(--success)}.wallet-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}.wallet-action{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 7px;border-radius:16px;text-align:center}.wallet-action .action-icon{color:var(--accent)}.wallet-action span:last-child{font-size:11px;font-weight:700}.wallet-section{display:flex;justify-content:space-between;align-items:center;margin:21px 0 12px}.wallet-section h2{font-size:16px}.wallet-section a{font-size:12px;color:var(--accent);font-weight:700}.wallet-note{display:flex;gap:11px;align-items:flex-start;padding:15px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);color:var(--text-muted);font-size:13px;line-height:1.45}.wallet-note .svg-icon{color:var(--accent);flex:none}@media(max-width:520px){.wallet-actions{grid-template-columns:1fr 1fr}.wallet-meta{flex-direction:column;gap:4px}}
+  </style>
 </head>
-<body>
-  <div class="universe-bg"></div>
-  <div id="universeLoader" class="loader-overlay">
-    <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
-    <div class="loader-text">ENTERING MULTIVERSE</div>
-  </div>
-
-  <header class="app-header glass">
-    <div class="logo"><div class="logo-icon">M</div> MULTIVERSE</div>
-    <div class="header-actions"><a href="dashboard.html" class="icon-btn">‹</a></div>
-  </header>
-
-  <main class="main-content">
-    <div class="glass glass-card stat-card" style="text-align:center; padding: 40px 20px; margin-bottom: 25px; position:relative; overflow:hidden;">
-      <div class="glow" style="top:50%; left:50%; transform:translate(-50%, -50%); width:200px; height:200px;"></div>
-      <div class="label" style="position:relative; z-index:1;">Total Balance</div>
-      <div class="value text-accent" id="walletBalance" style="position:relative; z-index:1; font-size:36px; margin: 10px 0;">₦0.00</div>
-      <div class="label" style="position:relative; z-index:1;">Daily Yield: <span id="walletYield" class="text-success">₦0.00</span></div>
-    </div>
-
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-      <a href="deposit.html" class="glass glass-card action-btn" style="text-align:center; text-decoration:none; padding: 25px 15px;">
-        <div style="font-size:24px; margin-bottom:10px;">💳</div><div style="font-weight:700;">Deposit</div>
-      </a>
-      <a href="withdraw.html" class="glass glass-card action-btn" style="text-align:center; text-decoration:none; padding: 25px 15px;">
-        <div style="font-size:24px; margin-bottom:10px;">💸</div><div style="font-weight:700;">Withdraw</div>
-      </a>
-      <a href="transactions.html" class="glass glass-card action-btn" style="text-align:center; text-decoration:none; padding: 25px 15px;">
-        <div style="font-size:24px; margin-bottom:10px;">📜</div><div style="font-weight:700;">History</div>
-      </a>
-      <a href="gift-code.html" class="glass glass-card action-btn" style="text-align:center; text-decoration:none; padding: 25px 15px;">
-        <div style="font-size:24px; margin-bottom:10px;">🎁</div><div style="font-weight:700;">Gift Code</div>
-      </a>
-    </div>
-  </main>
-
-  <nav class="bottom-nav glass">
-    <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
-    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Miners</span></a>
-    <a href="wallet.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
-    <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Team</span></a>
-    <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
-  </nav>
-
-  <script src="assets/js/api-client.js"></script>
-  <script src="assets/js/auth-guard.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
-      document.getElementById('walletBalance').textContent = '₦' + Number(wallet?.balance || 0).toLocaleString();
-
-      const { data: miners } = await window.supabaseClient.from('user_miners').select('*, miners(daily_revenue)').eq('user_id', session.user.id).eq('status', 'active');
-      let yieldTotal = 0;
-      miners?.forEach(m => yieldTotal += Number(m.miners.daily_revenue));
-      document.getElementById('walletYield').textContent = '₦' + yieldTotal.toLocaleString();
-    });
-  </script>
-</body>
-</html>
+<body><div class="universe-bg"></div><div id="universeLoader" class="loader-overlay"><img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg"/><div class="loader-text">ENTERING MULTIVERSE</div></div>
+<header class="app-header glass"><a href="dashboard.html" class="icon-btn" aria-label="Back" data-icon="arrowLeft"></a><div class="logo" style="font-size:18px;">WALLET</div><a href="profile.html" class="icon-btn" aria-label="Profile" data-icon="user"></a></header>
+<main class="main-content"><section class="wallet-hero"><div class="glow"></div><div class="wallet-label">Available balance</div><div class="wallet-balance text-accent" id="walletBalance">₦0.00</div><div class="wallet-meta"><span>Estimated daily yield</span><strong id="walletYield">₦0.00</strong></div></section>
+<div class="wallet-actions"><a href="deposit.html" class="glass wallet-action"><span class="action-icon" data-icon="card"></span><span>Deposit</span></a><a href="withdraw.html" class="glass wallet-action"><span class="action-icon" data-icon="send"></span><span>Withdraw</span></a><a href="transactions.html" class="glass wallet-action"><span class="action-icon" data-icon="chart"></span><span>History</span></a><a href="gift-code.html" class="glass wallet-action"><span class="action-icon" data-icon="gift"></span><span>Gift code</span></a></div>
+<div class="wallet-section"><h2>Wallet activity</h2><a href="transactions.html">View history</a></div><div class="wallet-note"><span data-icon="shield"></span><span>Your withdrawal balance is reserved atomically when a request is submitted and restored automatically if an administrator rejects it.</span></div>
+<div class="wallet-section"><h2>Mining yield</h2><a href="rent-miners.html">Rent a miner</a></div><div id="walletMinerSummary" class="glass glass-card" style="color:var(--text-muted);">Loading active miners...</div></main>
+<nav class="bottom-nav glass"><a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a><a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Miners</span></a><a href="wallet.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H19a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5z"/><path d="M16 13h5M17 13a1 1 0 1 0 0 2 1 1 0 0 0-1-2"/></svg><span>Wallet</span></a><a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M15 20a4.5 4.5 0 0 1 6 0"/></svg><span>Team</span></a><a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></a></nav>
+<script src="assets/js/api-client.js"></script><script src="assets/js/auth-guard.js"></script><script src="assets/js/app.js"></script><script>
+document.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=window.MultiVerse.createIcon(el.dataset.icon,22)});const money=v=>'₦'+Number(v||0).toLocaleString();document.addEventListener('DOMContentLoaded',async()=>{const{data:{session}}=await window.supabaseClient.auth.getSession();if(!session)return;const{data:wallet}=await window.supabaseClient.from('wallets').select('balance').eq('user_id',session.user.id).maybeSingle();document.getElementById('walletBalance').textContent=money(wallet?.balance);const{data:assignments,error}=await window.supabaseClient.from('user_miners').select('miner_id').eq('user_id',session.user.id).eq('status','active');const summary=document.getElementById('walletMinerSummary');if(error){summary.textContent='Unable to load mining yield.';return}if(!assignments?.length){document.getElementById('walletYield').textContent=money(0);summary.textContent='No active miners. Explore packages to start earning daily yield.';return}const{data:miners}=await window.supabaseClient.from('miners').select('id,name,daily_revenue').in('id',assignments.map(x=>x.miner_id));const yieldTotal=(miners||[]).reduce((sum,m)=>sum+Number(m.daily_revenue||0),0);document.getElementById('walletYield').textContent=money(yieldTotal);summary.innerHTML=(miners||[]).map(m=>`<div style="display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--glass-border);"><span>${m.name}</span><b class="text-success">${money(m.daily_revenue)} / day</b></div>`).join('')||'No active miner details found.'});
+</script></body></html>
