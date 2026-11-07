@@ -23,6 +23,9 @@
     .admin-modal-close { width:34px; height:34px; border:1px solid var(--glass-border); border-radius:50%; background:rgba(255,255,255,.06); color:var(--text-main); cursor:pointer; font-size:20px; }
     .manage-grid { display:grid; gap:12px; }
     .manage-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .package-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+    .package-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    @media(max-width:560px){ .package-edit-grid { grid-template-columns:1fr; } }
     @media(max-width:560px){ .user-row { align-items:flex-start !important; flex-direction:column; } .user-actions { width:100%; justify-content:flex-start; } .manage-actions { grid-template-columns:1fr; } }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
@@ -85,6 +88,24 @@
           <div class="form-group"><label class="form-label" for="manageMiner">Grant mining package</label><select id="manageMiner" class="form-input"><option value="">Select package...</option></select></div>
           <button type="button" class="btn-primary" style="background:linear-gradient(135deg,var(--success),#059669);" onclick="grantUserMiner()">Grant package</button>
         </div>
+      </div>
+    </div>
+
+    <div id="packageModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="packageTitle">
+      <div class="glass admin-modal-card">
+        <div class="admin-modal-head"><div><h2 id="packageTitle" style="font-size:18px;">Edit package</h2><p id="packageSubtitle" class="text-muted" style="font-size:12px;"></p></div><button class="admin-modal-close" type="button" onclick="closePackageModal()" aria-label="Close">×</button></div>
+        <form id="packageEditForm" class="manage-grid">
+          <input type="hidden" id="editMinerId">
+          <div class="package-edit-grid">
+            <div class="form-group"><label class="form-label" for="editMinerName">Package name</label><input id="editMinerName" class="form-input" required></div>
+            <div class="form-group"><label class="form-label" for="editMinerPrice">Price</label><input id="editMinerPrice" class="form-input" type="number" min="0" step="0.01" required></div>
+            <div class="form-group"><label class="form-label" for="editMinerRevenue">Daily revenue</label><input id="editMinerRevenue" class="form-input" type="number" min="0" step="0.01" required></div>
+            <div class="form-group"><label class="form-label" for="editMinerDuration">Duration (days)</label><input id="editMinerDuration" class="form-input" type="number" min="1" required></div>
+            <div class="form-group"><label class="form-label" for="editMinerLimit">Purchase limit</label><input id="editMinerLimit" class="form-input" type="number" min="1" required></div>
+            <div class="form-group"><label class="form-label" for="editMinerImage">Image URL</label><input id="editMinerImage" class="form-input" type="url"></div>
+          </div>
+          <button class="btn-primary" type="submit">Save package</button>
+        </form>
       </div>
     </div>
     <!-- GIFT CODES -->
@@ -170,6 +191,8 @@
       loadTabData(id);
     }
 
+    const packageCache = {};
+
     async function loadTabData(tab) {
       if (tab === 'dashboard') {
         const res = await callAdmin('get_stats');
@@ -211,7 +234,7 @@
               <div style="font-weight:700;">${u.full_name || 'Unknown'} ${u.is_admin ? '<span class="tag tag-level">ADMIN</span>' : ''}</div>
               <div style="font-size:12px; color:var(--text-muted);">${u.email} • Bal: ₦${Number(u.wallets?.balance || 0).toLocaleString()}</div>
             </div>
-            <div class="user-actions"><button class="btn-sm btn-action" onclick="openManageModal('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}', '${u.email || ''}')">Manage</button><button class="btn-sm btn-action" onclick="impersonateUser('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">Login as user</button></div>
+            <div class="user-actions"><button class="btn-sm btn-action" onclick="openManageModal('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}', '${u.email || ''}')">Manage</button><button class="btn-sm ${u.is_active === false ? 'btn-approve' : 'btn-reject'}" onclick="toggleBan('${u.id}', ${u.is_active !== false}, '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">${u.is_active === false ? 'Unban' : 'Ban'}</button><button class="btn-sm btn-action" onclick="impersonateUser('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">Login as user</button></div>
           </div>`).join('') || '<p class="text-muted">No users found.</p>';
       } else if (tab === 'gift-codes') {
         const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', { ascending: false });
@@ -221,13 +244,14 @@
           </div>`).join('') || '<p class="text-muted">No gift codes.</p>';
       } else if (tab === 'miners') {
         const { data } = await window.supabaseClient.from('miners').select('*').order('price', { ascending: true });
+        (data || []).forEach(m => { packageCache[m.id] = m; });
         document.getElementById('minersList').innerHTML = data?.map(m => `
           <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-weight:700;">${m.name}</div>
               <div style="font-size:12px; color:var(--text-muted);">Price: ₦${Number(m.price).toLocaleString()} • Daily: ₦${Number(m.daily_revenue).toLocaleString()} • ${m.duration_days} Days</div>
             </div>
-            <button class="btn-sm btn-reject" onclick="deleteMiner('${m.id}')">Deactivate</button>
+            <div class="package-actions"><button class="btn-sm btn-action" onclick="openPackageModal('${m.id}')">Edit</button><button class="btn-sm btn-reject" onclick="deleteMiner('${m.id}')">Deactivate</button></div>
           </div>`).join('') || '<p class="text-muted">No packages found.</p>';
       } else if (tab === 'settings') {
         const { data } = await window.supabaseClient.from('settings').select('*');
@@ -287,6 +311,45 @@
       if (res.success) { closeManageModal(); loadTabData('users'); }
     }
     document.getElementById('manageModal').addEventListener('click', e => { if (e.target.id === 'manageModal') closeManageModal(); });
+
+    async function toggleBan(userId, isActive, userName) {
+      const action = isActive ? 'ban' : 'unban';
+      if (!confirm(`${action === 'ban' ? 'Ban' : 'Unban'} ${userName}?`)) return;
+      const res = await callAdmin('toggle_ban', { user_id: userId, is_active: isActive });
+      alert(res.message || res.error);
+      if (res.success) loadTabData('users');
+    }
+    function openPackageModal(minerId) {
+      const miner = packageCache[minerId];
+      if (!miner) return alert('Package details are unavailable. Refresh and try again.');
+      document.getElementById('editMinerId').value = miner.id;
+      document.getElementById('packageTitle').textContent = `Edit ${miner.name}`;
+      document.getElementById('packageSubtitle').textContent = 'Update the package details shown to users.';
+      document.getElementById('editMinerName').value = miner.name || '';
+      document.getElementById('editMinerPrice').value = miner.price ?? '';
+      document.getElementById('editMinerRevenue').value = miner.daily_revenue ?? '';
+      document.getElementById('editMinerDuration').value = miner.duration_days ?? '';
+      document.getElementById('editMinerLimit').value = miner.purchase_limit ?? '';
+      document.getElementById('editMinerImage').value = miner.image_url || '';
+      document.getElementById('packageModal').classList.add('show');
+    }
+    function closePackageModal() { document.getElementById('packageModal').classList.remove('show'); }
+    document.getElementById('packageModal').addEventListener('click', e => { if (e.target.id === 'packageModal') closePackageModal(); });
+    document.getElementById('packageEditForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const payload = {
+        id: document.getElementById('editMinerId').value,
+        name: document.getElementById('editMinerName').value,
+        price: Number(document.getElementById('editMinerPrice').value),
+        daily_revenue: Number(document.getElementById('editMinerRevenue').value),
+        duration_days: Number(document.getElementById('editMinerDuration').value),
+        purchase_limit: Number(document.getElementById('editMinerLimit').value),
+        image_url: document.getElementById('editMinerImage').value
+      };
+      const res = await callAdmin('update_miner', payload);
+      alert(res.message || res.error);
+      if (res.success) { closePackageModal(); loadTabData('miners'); }
+    });
 
     async function impersonateUser(userId, userName) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
