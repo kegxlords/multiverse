@@ -34,26 +34,13 @@ body {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100vh;
   z-index: -1;
+  /* Fallback gradient + Actual Image */
   background: 
-    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
-    linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
+    linear-gradient(rgba(2, 6, 23, 0.85), rgba(2, 6, 23, 0.95)), 
+    url('../img/bg-universe.jpg');
   background-size: cover;
-}
-
-/* Starry effect overlay */
-.universe-bg::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-image: 
-    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
-    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
-    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
-  background-size: 550px 550px, 350px 350px, 250px 250px;
-  background-position: 0 0, 40px 60px, 130px 270px;
-  opacity: 0.6;
-  pointer-events: none;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 /* ==========================================
@@ -76,43 +63,24 @@ body {
   visibility: hidden;
 }
 
-.galaxy-loader {
-  position: relative;
-  width: 80px; height: 80px;
-  display: flex; align-items: center; justify-content: center;
+.loader-svg {
+  width: 100px;
+  height: 100px;
+  margin-bottom: 20px;
 }
-
-.galaxy-core {
-  width: 16px; height: 16px;
-  background: var(--accent);
-  border-radius: 50%;
-  box-shadow: 0 0 20px var(--accent), 0 0 40px var(--primary);
-  animation: pulse 2s infinite ease-in-out;
-}
-
-.galaxy-ring {
-  position: absolute;
-  border: 2px solid transparent;
-  border-top-color: var(--primary);
-  border-right-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 1.5s linear infinite;
-}
-
-.ring-1 { width: 50px; height: 50px; animation-duration: 2s; }
-.ring-2 { width: 70px; height: 70px; animation-duration: 3s; border-top-color: var(--accent); border-right-color: var(--primary); }
 
 .loader-text {
-  margin-top: 25px;
   font-family: 'Orbitron', sans-serif;
   font-size: 12px;
   letter-spacing: 4px;
   color: var(--text-muted);
-  animation: pulse 2s infinite ease-in-out;
+  animation: pulseText 2s infinite ease-in-out;
 }
 
-@keyframes spin { 100% { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+@keyframes pulseText { 
+  0%, 100% { opacity: 0.5; } 
+  50% { opacity: 1; } 
+}
 
 /* ==========================================
    GLASSMORPHISM UTILITIES
