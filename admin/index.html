@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MultiVerse - Admin Command Center</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  
+  <header class="app-header glass" style="z-index: 200;">
+    <div class="logo"><div class="logo-icon">M</div> MULTIVERSE <span style="font-size: 12px; color: var(--warning); margin-left: 10px;">ADMIN</span></div>
+    <div class="header-actions"><a href="../dashboard.html" class="icon-btn">Exit</a></div>
+  </header>
+
+  <div class="admin-container">
+    <!-- Sidebar Navigation -->
+    <aside class="admin-sidebar glass">
+      <button class="admin-tab active" onclick="showTab('dashboard')">📊 Dashboard</button>
+      <button class="admin-tab" onclick="showTab('settings')">⚙️ Settings</button>
+      <button class="admin-tab" onclick="showTab('gift-codes')">🎁 Gift Codes</button>
+      <button class="admin-tab" onclick="showTab('miners')">⛏️ Miners</button>
+      <button class="admin-tab" onclick="showTab('deposits')">💳 Deposits</button>
+      <button class="admin-tab" onclick="showTab('withdrawals')">💸 Withdrawals</button>
+      <button class="admin-tab" onclick="showTab('users')">👥 Users</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      
+      <!-- DASHBOARD TAB -->
+      <section id="dashboard" class="admin-section active">
+        <h2 class="page-title">Overview</h2>
+        <div class="admin-grid">
+          <div class="admin-card stat-card"><div class="label">Total Users</div><div class="value text-accent" id="statUsers">0</div></div>
+          <div class="admin-card stat-card"><div class="label">Completed Deposits</div><div class="value text-success" id="statDeposits">0</div></div>
+          <div class="admin-card stat-card"><div class="label">Pending Actions</div><div class="value text-warning" id="statPending">0</div></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS TAB -->
+      <section id="settings" class="admin-section">
+        <h2 class="page-title">Global Settings</h2>
+        <div class="admin-card">
+          <form id="settingsForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group"><label class="form-label">Welcome Bonus (₦)</label><input type="number" name="welcome_bonus_amount" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Min Withdrawal (₦)</label><input type="number" name="min_withdrawal" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Withdrawal Fee (%)</label><input type="number" name="withdrawal_fee_percent" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Min Deposit (₦)</label><input type="number" name="deposit_min_amount" class="form-input" /></div>
+            
+            <div class="form-group"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Account Number</label><input type="text" name="account_number" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Account Name</label><input type="text" name="account_name" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Telegram Link</label><input type="text" name="telegram_link" class="form-input" /></div>
+
+            <div class="form-group"><label class="form-label">Weekday Start (e.g., 08:00)</label><input type="text" name="withdrawal_weekday_start" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Weekday End (e.g., 18:00)</label><input type="text" name="withdrawal_weekday_end" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Weekend Start (e.g., 10:00)</label><input type="text" name="withdrawal_weekend_start" class="form-input" /></div>
+            <div class="form-group"><label class="form-label">Weekend End (e.g., 17:00)</label><input type="text" name="withdrawal_weekend_end" class="form-input" /></div>
+
+            <div style="grid-column: 1 / -1;">
+              <button type="submit" class="btn-primary">SAVE SETTINGS</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- GIFT CODES TAB -->
+      <section id="gift-codes" class="admin-section">
+        <h2 class="page-title">Gift Code Manager</h2>
+        <div class="admin-card">
+          <h3 style="margin-bottom: 15px;">Create New Code</h3>
+          <form id="giftForm" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" id="newCode" class="form-input" placeholder="CODE NAME" required style="text-transform: uppercase;" />
+            <input type="number" id="newAmount" class="form-input" placeholder="Amount (₦)" required />
+            <button type="submit" class="btn-primary" style="width: auto; padding: 0 25px;">CREATE</button>
+          </form>
+          <div id="giftList"></div>
+        </div>
+      </section>
+
+      <!-- DEPOSITS TAB -->
+      <section id="deposits" class="admin-section">
+        <h2 class="page-title">Pending Deposits</h2>
+        <div class="admin-card">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Amount</th><th>Reference</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="depositTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- WITHDRAWALS TAB -->
+      <section id="withdrawals" class="admin-section">
+        <h2 class="page-title">Pending Withdrawals</h2>
+        <div class="admin-card">
+          <table class="admin-table">
+            <thead><tr><th>User</th><th>Amount</th><th>Bank Details</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody id="withdrawalTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- USERS TAB -->
+      <section id="users" class="admin-section">
+        <h2 class="page-title">User Management</h2>
+        <div class="admin-card">
+          <table class="admin-table">
+            <thead><tr><th>Name</th><th>Email</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="userTable"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../assets/js/api-client.js"></script>
+  <script src="../assets/js/auth-guard.js"></script>
+  <script>
+    // Tab Switching
+    function showTab(tabId) {
+      document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      loadData(tabId);
+    }
+
+    // Secure API Caller
+    async function callAdmin(action, payload = {}) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      const res = await fetch('/api/admin-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action, payload })
+      });
+      return await res.json();
+    }
+
+    // Load Data based on tab
+    async function loadData(tab) {
+      if (tab === 'dashboard') {
+        const res = await callAdmin('get_stats');
+        if (res.success) {
+          document.getElementById('statUsers').textContent = res.data.users;
+          document.getElementById('statDeposits').textContent = res.data.deposits;
+          document.getElementById('statPending').textContent = res.data.pending;
+        }
+      }
+      // Additional data loading logic for other tabs would go here (fetching transactions, users, etc.)
+    }
+
+    // Settings Form
+    document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const payload = Object.fromEntries(formData.entries());
+      const res = await callAdmin('update_settings', payload);
+      alert(res.message || res.error);
+    });
+
+    // Gift Code Form
+    document.getElementById('giftForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = document.getElementById('newCode').value;
+      const amount = document.getElementById('newAmount').value;
+      const res = await callAdmin('create_gift_code', { code, amount });
+      alert(res.message || res.error);
+      e.target.reset();
+    });
+
+    // Initial Load
+    document.addEventListener('DOMContentLoaded', () => loadData('dashboard'));
+  </script>
+</body>
+</html>
