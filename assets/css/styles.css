@@ -291,3 +291,36 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
 .amount-negative { color: var(--danger); }
 
 .time-restriction-notice { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 20px; font-size: 13px; color: var(--warning); display: flex; align-items: center; gap: 10px; }
+/* ==========================================
+   TEAM & GIFT CODE UI
+   ========================================== */
+.referral-card { background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15)); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; margin-bottom: 25px; }
+.referral-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+.referral-link-box { display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 5px; border: 1px solid var(--glass-border); }
+.referral-link-box input { flex: 1; background: transparent; border: none; padding: 12px 15px; color: var(--text-main); font-family: 'Rajdhani'; font-size: 14px; outline: none; }
+.referral-link-box button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; font-family: 'Orbitron'; font-size: 12px; transition: all 0.3s; }
+.referral-link-box button:hover { background: var(--accent); }
+
+.team-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 25px; }
+.team-stat-card { text-align: center; padding: 20px 10px; }
+.team-stat-card .val { font-family: 'Orbitron'; font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+.team-stat-card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.member-list { display: flex; flex-direction: column; gap: 12px; }
+.member-item { display: flex; align-items: center; gap: 15px; padding: 15px; border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); }
+.member-avatar { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-family: 'Orbitron'; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+.member-info { flex: 1; }
+.member-name { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+.member-date { font-size: 12px; color: var(--text-muted); }
+.member-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.tag { padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.tag-active { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+.tag-inactive { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+.tag-level { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
+
+.gift-input-wrapper { position: relative; margin-bottom: 20px; }
+.gift-input-wrapper input { text-transform: uppercase; letter-spacing: 2px; text-align: center; font-family: 'Orbitron'; font-size: 18px; padding: 18px; }
+.gift-features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px; }
+.gift-feature { display: flex; align-items: center; gap: 12px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--glass-border); }
+.gift-feature-icon { font-size: 24px; }
+.gift-feature-text { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
