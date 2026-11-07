@@ -361,3 +361,38 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
   .admin-table { font-size: 12px; }
   .admin-table th, .admin-table td { padding: 8px 5px; }
 }
+
+/* ==========================================
+   IMPERSONATION & SVG UI
+   ========================================== */
+.svg-icon { display: block; flex: 0 0 auto; }
+.action-icon .svg-icon { width: 22px; height: 22px; }
+.impersonation-banner {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 24px));
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 14px;
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  border-radius: 14px;
+  background: rgba(69, 42, 5, 0.94);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  color: #fef3c7;
+}
+.impersonation-copy { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.impersonation-copy .svg-icon { color: #fbbf24; }
+.impersonation-copy span { display: grid; gap: 2px; min-width: 0; }
+.impersonation-copy strong { font-size: 13px; letter-spacing: .3px; }
+.impersonation-copy small { color: #fde68a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.impersonation-stop { border: 1px solid rgba(254, 243, 199, .4); border-radius: 9px; padding: 8px 11px; background: rgba(255,255,255,.08); color: #fff7ed; font: 700 12px 'Rajdhani', sans-serif; cursor: pointer; white-space: nowrap; }
+.impersonation-stop:hover { background: rgba(255,255,255,.16); }
+@media (max-width: 560px) {
+  .impersonation-banner { align-items: flex-start; flex-direction: column; gap: 9px; }
+  .impersonation-stop { width: 100%; }
+}
