@@ -225,3 +225,37 @@ h1, h2, h3, h4 { font-family: 'Orbitron', sans-serif; font-weight: 700; line-hei
   color: #6EE7B7; 
   border: 1px solid rgba(16, 185, 129, 0.3); 
 }
+/* ==========================================
+   DASHBOARD & MINER UI
+   ========================================== */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+.stat-card { position: relative; overflow: hidden; }
+.stat-card .label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.stat-card .value { font-family: 'Orbitron'; font-size: 24px; font-weight: 700; }
+.stat-card .glow { position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; background: var(--primary-glow); border-radius: 50%; filter: blur(20px); opacity: 0.5; }
+
+.quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 25px; }
+.action-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 15px 5px; border-radius: 16px; cursor: pointer; transition: all 0.3s; text-align: center; }
+.action-btn:hover { background: rgba(255,255,255,0.05); transform: translateY(-3px); }
+.action-icon { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: rgba(139, 92, 246, 0.15); color: var(--primary); }
+
+/* Miner Catalog Layout (Square Left, Info Right) */
+.miner-list { display: flex; flex-direction: column; gap: 15px; }
+.miner-card { display: flex; align-items: center; gap: 20px; }
+.miner-img-box { width: 110px; height: 110px; flex-shrink: 0; border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; }
+.miner-img-box img { width: 100%; height: 100%; object-fit: cover; }
+.miner-info { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.miner-name { font-family: 'Orbitron'; font-size: 16px; font-weight: 700; color: var(--text-main); }
+.miner-specs { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text-muted); }
+.miner-specs span { display: flex; align-items: center; gap: 4px; }
+.miner-specs b { color: var(--accent); font-weight: 600; }
+.btn-rent { padding: 10px 20px; background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; border-radius: 10px; color: white; font-family: 'Orbitron'; font-weight: 700; font-size: 12px; cursor: pointer; align-self: flex-end; box-shadow: 0 4px 15px var(--primary-glow); transition: all 0.3s; }
+.btn-rent:hover { transform: scale(1.05); }
+.btn-rent:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Progress Bar for My Miners */
+.progress-container { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+.progress-bar { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); border-radius: 3px; transition: width 0.5s ease; }
+.status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-top: 8px; }
+.status-active { background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-completed { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid rgba(245, 158, 11, 0.3); }
