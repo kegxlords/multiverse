@@ -86,27 +86,87 @@
   <script src="assets/js/app.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if(!session) return;
+      try {
+        const { data: { session } } = await window.supabaseClient.auth.getSession();
+        if (!session) {
+          window.location.href = 'index.html';
+          return;
+        }
 
-      // Fetch Profile
-      const { data: profile } = await window.supabaseClient.from('profiles').select('*').eq('id', session.user.id).single();
-      document.getElementById('profileName').textContent = profile.full_name || 'User';
-      document.getElementById('profileEmail').textContent = session.user.email;
-      document.getElementById('profileAvatar').textContent = (profile.full_name || 'U')[0].toUpperCase();
+        const userId = session.user.id;
+        const userEmail = session.user.email;
 
-      // Fetch Wallet
-      const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
-      document.getElementById('statBalance').textContent = '₦' + Number(wallet?.balance || 0).toLocaleString();
+        // Fetch Profile with error handling
+        const { data: profile, error: profileError } = await window.supabaseClient
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single();
 
-      // Fetch Total Deposited (from profile column)
-      document.getElementById('statDeposit').textContent = '₦' + Number(profile.total_deposited || 0).toLocaleString();
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          // If profile doesn't exist, create it
+          if (profileError.code === 'PGRST116') {
+            const { data: newProfile, error: createError } = await window.supabaseClient
+              .from('profiles')
+              .insert({ id: userId, email: userEmail, full_name: userEmail.split('@')[0], referral_code: Math.random().toString(36).substring(2, 8).toUpperCase() })
+              .select()
+              .single();
+            
+            if (createError) {
+              console.error('Profile creation error:', createError);
+              document.getElementById('profileName').textContent = 'User';
+            } else {
+              document.getElementById('profileName').textContent = newProfile.full_name || 'User';
+              document.getElementById('profileAvatar').textContent = (newProfile.full_name || 'U')[0].toUpperCase();
+            }
+          } else {
+            document.getElementById('profileName').textContent = 'User';
+          }
+        } else {
+          document.getElementById('profileName').textContent = profile.full_name || 'User';
+          document.getElementById('profileAvatar').textContent = (profile.full_name || 'U')[0].toUpperCase();
+          document.getElementById('statDeposit').textContent = '₦' + Number(profile.total_deposited || 0).toLocaleString();
+        }
 
-      // Fetch Total Withdrawn (Sum of completed withdrawals)
-      const { data: withdrawals } = await window.supabaseClient.from('transactions').select('amount').eq('user_id', session.user.id).eq('type', 'withdrawal').eq('status', 'completed');
-      let totalWith = 0;
-      withdrawals?.forEach(w => totalWith += Number(w.amount));
-      document.getElementById('statWithdraw').textContent = '₦' + totalWith.toLocaleString();
+        document.getElementById('profileEmail').textContent = userEmail;
+
+        // Fetch Wallet
+        const { data: wallet, error: walletError } = await window.supabaseClient
+          .from('wallets')
+          .select('balance')
+          .eq('user_id', userId)
+          .single();
+
+        if (walletError) {
+          console.error('Wallet fetch error:', walletError);
+          // Create wallet if it doesn't exist
+          await window.supabaseClient.from('wallets').insert({ user_id: userId, balance: 0 });
+          document.getElementById('statBalance').textContent = '₦0';
+        } else {
+          document.getElementById('statBalance').textContent = '₦' + Number(wallet.balance || 0).toLocaleString();
+        }
+
+        // Fetch Total Withdrawn
+        const { data: withdrawals, error: withError } = await window.supabaseClient
+          .from('transactions')
+          .select('amount')
+          .eq('user_id', userId)
+          .eq('type', 'withdrawal')
+          .eq('status', 'completed');
+
+        if (withError) {
+          console.error('Withdrawals fetch error:', withError);
+        } else {
+          let totalWith = 0;
+          withdrawals?.forEach(w => totalWith += Number(w.amount));
+          document.getElementById('statWithdraw').textContent = '₦' + totalWith.toLocaleString();
+        }
+
+      } catch (err) {
+        console.error('Profile page error:', err);
+        showToast('Error loading profile', 'error');
+      }
     });
 
     function logout(e) {
