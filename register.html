@@ -71,7 +71,7 @@
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fullName = document.getElementById('fullName').value.trim();
-      const email = document.getElementById('email').value.trim();
+      const email = document.getElementById('email').value.trim().toLowerCase();
       const phone = document.getElementById('phone').value.trim();
       const password = document.getElementById('password').value;
       const refCode = document.getElementById('refCode').value.trim().toUpperCase();
@@ -92,15 +92,25 @@
       });
 
       if (error) {
-        alertBox.textContent = error.message;
+        const message = /database error saving new user/i.test(error.message)
+          ? 'Registration is temporarily unavailable because the new-user database trigger failed. Please contact the administrator or try again later.'
+          : error.message;
+        alertBox.textContent = message;
         alertBox.className = 'alert alert-error show';
         btn.disabled = false;
         btn.innerText = 'CREATE ACCOUNT';
       } else {
-        alertBox.textContent = '✅ Account created! Please check your email to verify, then login.';
-        alertBox.className = 'alert alert-success show';
-        btn.innerText = 'ACCOUNT CREATED';
-        document.getElementById('registerForm').reset();
+        if (data.session) {
+          alertBox.textContent = '✅ Account created! Entering the dashboard...';
+          alertBox.className = 'alert alert-success show';
+          btn.innerText = 'ACCOUNT CREATED';
+          setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);
+        } else {
+          alertBox.textContent = '✅ Account created! Please sign in now.';
+          alertBox.className = 'alert alert-success show';
+          btn.innerText = 'ACCOUNT CREATED';
+          document.getElementById('registerForm').reset();
+        }
       }
     });
   </script>
