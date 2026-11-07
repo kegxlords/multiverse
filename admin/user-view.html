@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - User View</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/theme.css" />
+  <link rel="stylesheet" href="../assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  <header class="app-header glass">
+    <a href="index.html" class="icon-btn" style="text-decoration:none;">‹</a>
+    <div class="logo" style="font-size: 18px;">USER DETAILS</div>
+    <div style="width: 40px;"></div>
+  </header>
+
+  <main class="main-content" style="padding-top: 30px;">
+    <div id="userHeader" class="glass glass-card" style="text-align:center; margin-bottom:20px;">
+      <h2 id="uName" style="font-family:'Orbitron';">Loading...</h2>
+      <p id="uEmail" class="text-muted"></p>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:20px;">
+        <div><div class="text-muted" style="font-size:11px;">Balance</div><div id="uBalance" class="text-accent" style="font-family:'Orbitron'; font-weight:700;">₦0</div></div>
+        <div><div class="text-muted" style="font-size:11px;">Deposited</div><div id="uDeposit" class="text-success" style="font-family:'Orbitron'; font-weight:700;">₦0</div></div>
+        <div><div class="text-muted" style="font-size:11px;">Team Size</div><div id="uTeam" style="font-family:'Orbitron'; font-weight:700;">0</div></div>
+      </div>
+    </div>
+
+    <!-- Admin Actions -->
+    <div class="glass glass-card" style="margin-bottom:20px;">
+      <h3 style="font-family:'Orbitron'; font-size:15px; margin-bottom:15px; color:var(--accent);">Admin Actions</h3>
+      
+      <form id="addFundsForm" style="display:flex; gap:10px; margin-bottom:15px;">
+        <input type="number" id="fundAmount" class="form-input" placeholder="Amount to Add" required>
+        <button type="submit" class="btn-primary" style="width:auto;">Add Funds</button>
+      </form>
+
+      <form id="assignMinerForm" style="display:flex; gap:10px;">
+        <select id="minerSelect" class="form-input" required>
+          <option value="">Select Package...</option>
+        </select>
+        <button type="submit" class="btn-primary" style="width:auto; background:linear-gradient(135deg, var(--success), #059669);">Assign Miner</button>
+      </form>
+    </div>
+
+    <!-- Transactions -->
+    <h3 style="font-family:'Orbitron'; font-size:15px; margin-bottom:15px;">Recent Transactions</h3>
+    <div id="txList"></div>
+  </main>
+
+  <script src="../assets/js/api-client.js"></script>
+  <script>
+    async function callAdmin(action, payload = {}) {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      const res = await fetch('/api/admin-actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action, payload })
+      });
+      return await res.json();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get('id');
+      if (!userId) { window.location.href = 'index.html'; return; }
+
+      // Fetch User Data
+      const { data: user } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').eq('id', userId).single();
+      const { count: teamCount } = await window.supabaseClient.from('profiles').select('*', {count:'exact', head:true}).eq('referred_by', userId);
+      const { data: txs } = await window.supabaseClient.from('transactions').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(10);
+      const { data: miners } = await window.supabaseClient.from('miners').select('id, name').eq('is_active', true);
+
+      // Populate UI
+      document.getElementById('uName').textContent = user.full_name || 'Unknown';
+      document.getElementById('uEmail').textContent = user.email;
+      document.getElementById('uBalance').textContent = '₦' + Number(user.wallets?.balance || 0).toLocaleString();
+      document.getElementById('uDeposit').textContent = '₦' + Number(user.total_deposited || 0).toLocaleString();
+      document.getElementById('uTeam').textContent = teamCount || 0;
+
+      // Populate Miner Select
+      const select = document.getElementById('minerSelect');
+      miners?.forEach(m => {
+        select.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+      });
+
+      // Populate Transactions
+      document.getElementById('txList').innerHTML = txs?.map(t => `
+        <div class="glass glass-card" style="margin-bottom:10px; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:700; font-size:13px; text-transform:uppercase;">${t.type.replace('_',' ')}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${new Date(t.created_at).toLocaleDateString()}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:'Orbitron'; font-weight:700;">₦${Number(t.amount).toLocaleString()}</div>
+            <div style="font-size:11px; color:${t.status==='completed'?'var(--success)':'var(--warning)'};">${t.status}</div>
+          </div>
+        </div>
+      `).join('') || '<p class="text-muted">No transactions.</p>';
+
+      // Handle Add Funds
+      document.getElementById('addFundsForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const amount = document.getElementById('fundAmount').value;
+        const res = await callAdmin('manual_credit', { user_id: userId, amount });
+        alert(res.message || res.error);
+        if(res.success) location.reload();
+      });
+
+      // Handle Assign Miner
+      document.getElementById('assignMinerForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const minerId = document.getElementById('minerSelect').value;
+        const res = await callAdmin('assign_miner', { user_id: userId, miner_id: minerId });
+        alert(res.message || res.error);
+        if(res.success) location.reload();
+      });
+    });
+  </script>
+</body>
+</html>
