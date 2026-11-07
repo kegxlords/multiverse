@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MultiVerse - Gift Code</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  <div id="universeLoader" class="loader-overlay">
+    <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
+    <div class="loader-text">ENTERING MULTIVERSE</div>
+  </div>
+
+  <header class="app-header glass">
+    <a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a>
+    <div class="logo" style="font-size: 18px;">GIFT CODE</div>
+    <div style="width: 40px;"></div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title">Redeem Code</h1>
+    <p class="page-subtitle">Enter your exclusive gift code to claim your bonus.</p>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div class="glass glass-card">
+      <form id="giftForm">
+        <div class="gift-input-wrapper">
+          <label class="form-label" style="text-align:center; display:block; margin-bottom: 10px;">Enter Code</label>
+          <input type="text" id="giftCode" class="form-input" placeholder="XXXX-XXXX" required />
+        </div>
+        <button type="submit" class="btn-primary">REDEEM NOW</button>
+      </form>
+
+      <div class="gift-features">
+        <div class="gift-feature">
+          <div class="gift-feature-icon">🎁</div>
+          <div class="gift-feature-text">Instant wallet credit upon successful redemption.</div>
+        </div>
+        <div class="gift-feature">
+          <div class="gift-feature-icon">🔒</div>
+          <div class="gift-feature-text">Each code can only be used once per account.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <nav class="bottom-nav glass">
+    <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Miners</span></a>
+    <a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
+    <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Team</span></a>
+    <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
+  </nav>
+
+  <script src="assets/js/api-client.js"></script>
+  <script src="assets/js/auth-guard.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    document.getElementById('giftForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = document.getElementById('giftCode').value.trim();
+      const btn = e.target.querySelector('button');
+      const alertBox = document.getElementById('alertBox');
+
+      btn.disabled = true;
+      btn.textContent = 'REDEEMING...';
+      alertBox.className = 'alert';
+
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      
+      const res = await fetch('/api/gift-team', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ action: 'redeem_code', code })
+      });
+      
+      const result = await res.json();
+
+      if (result.success) {
+        alertBox.textContent = `✅ ${result.message}`;
+        alertBox.className = 'alert alert-success show';
+        document.getElementById('giftForm').reset();
+      } else {
+        alertBox.textContent = `❌ ${result.error || 'Failed to redeem code'}`;
+        alertBox.className = 'alert alert-error show';
+        btn.disabled = false;
+        btn.textContent = 'REDEEM NOW';
+      }
+    });
+  </script>
+</body>
+</html>
