@@ -7,34 +7,37 @@ export default async function handler(req, res) {
     await checkAdmin(user.id); // STRICT ADMIN CHECK
     const supabase = getSupabaseAdmin();
 
-    // GET: Dashboard Stats & Settings
-    if (req.method === 'POST') {
-      const [users, dep, withTx] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('type', 'deposit').eq('status', 'pending'),
-        supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('type', 'withdrawal').eq('status', 'pending')
-      ]);
-      const { data: settings } = await supabase.from('settings').select('*');
+    if (req.method !== 'POST') {
+      return sendRes(res, 405, { error: 'Method not allowed' });
+    }
 
-      return sendRes(res, 200, { 
-        success: true, 
-        data: { 
-          stats: { users: users.count, pendingDeposits: dep.count, pendingWithdrawals: withTx.count },
-          settings: settings 
-        } 
+    const { action, payload = {} } = req.body || {};
+
+    if (action === 'get_stats') {
+      const [users, deposits, pending] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('transactions').select('*', { count: 'exact', head: true }).eq('type', 'deposit').eq('status', 'completed'),
+        supabase.from('transactions').select('*', { count: 'exact', head: true }).in('type', ['deposit', 'withdrawal']).eq('status', 'pending')
+      ]);
+      return sendRes(res, 200, {
+        success: true,
+        data: {
+          users: users.count || 0,
+          deposits: deposits.count || 0,
+          pending: pending.count || 0
+        }
       });
     }
 
-    // POST: Update Settings
-    if (req.method === 'POST') {
-      const payload = req.body;
+    if (action === 'update_settings') {
       for (const [key, value] of Object.entries(payload)) {
-        await supabase.from('settings').upsert({ key, value: String(value) });
+        const { error } = await supabase.from('settings').upsert({ key, value: String(value) });
+        if (error) throw new Error(error.message);
       }
       return sendRes(res, 200, { success: true, message: 'Settings updated successfully' });
     }
 
-    return sendRes(res, 405, { error: 'Method not allowed' });
+    return sendRes(res, 400, { error: 'Invalid action' });
   } catch (err) {
     return sendRes(res, 400, { error: err.message });
   }
