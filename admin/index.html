@@ -9,10 +9,21 @@
   <link rel="stylesheet" href="../assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .admin-top-nav { display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: blur(10px); position: sticky; top: var(--header-height); z-index: 90; }
+    .admin-top-nav { margin-top: var(--header-height); display: flex; gap: 10px; overflow-x: auto; padding: 15px 20px; border-bottom: 1px solid var(--glass-border); background: var(--glass-bg); backdrop-filter: blur(10px); position: sticky; top: var(--header-height); z-index: 90; }
     .admin-top-nav button { white-space: nowrap; padding: 10px 20px; background: transparent; border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-muted); font-family: 'Rajdhani'; font-weight: 700; cursor: pointer; transition: 0.3s; }
     .admin-top-nav button.active { background: var(--primary); color: white; border-color: var(--primary); }
     .admin-content { padding: 20px; max-width: 1200px; margin: 0 auto; }
+    .user-row { gap: 14px; }
+    .user-row > div:first-child { min-width: 0; flex: 1; }
+    .user-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; }
+    .admin-modal { position:fixed; inset:0; z-index:1000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(2,6,23,.82); }
+    .admin-modal.show { display:flex; }
+    .admin-modal-card { width:min(480px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:22px; border-radius:22px; }
+    .admin-modal-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .admin-modal-close { width:34px; height:34px; border:1px solid var(--glass-border); border-radius:50%; background:rgba(255,255,255,.06); color:var(--text-main); cursor:pointer; font-size:20px; }
+    .manage-grid { display:grid; gap:12px; }
+    .manage-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    @media(max-width:560px){ .user-row { align-items:flex-start !important; flex-direction:column; } .user-actions { width:100%; justify-content:flex-start; } .manage-actions { grid-template-columns:1fr; } }
     .tab-content { display: none; }
     .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -65,6 +76,17 @@
       <div id="userList"></div>
     </section>
 
+    <div id="manageModal" class="admin-modal" role="dialog" aria-modal="true" aria-labelledby="manageTitle">
+      <div class="glass admin-modal-card">
+        <div class="admin-modal-head"><div><h2 id="manageTitle" style="font-size:18px;">Manage user</h2><p id="manageSubtitle" class="text-muted" style="font-size:12px;"></p></div><button class="admin-modal-close" type="button" onclick="closeManageModal()" aria-label="Close">×</button></div>
+        <div class="manage-grid">
+          <div class="form-group"><label class="form-label" for="manageAmount">Balance amount</label><input id="manageAmount" class="form-input" type="number" min="0.01" step="0.01" placeholder="Enter amount"></div>
+          <div class="manage-actions"><button type="button" class="btn-primary" onclick="adjustUserBalance(1)">Add funds</button><button type="button" class="btn-primary" style="background:linear-gradient(135deg,var(--danger),#b91c1c);" onclick="adjustUserBalance(-1)">Deduct funds</button></div>
+          <div class="form-group"><label class="form-label" for="manageMiner">Grant mining package</label><select id="manageMiner" class="form-input"><option value="">Select package...</option></select></div>
+          <button type="button" class="btn-primary" style="background:linear-gradient(135deg,var(--success),#059669);" onclick="grantUserMiner()">Grant package</button>
+        </div>
+      </div>
+    </div>
     <!-- GIFT CODES -->
     <section id="gift-codes" class="tab-content">
       <h2 class="page-title">Gift Codes</h2>
@@ -181,13 +203,15 @@
           </div>`).join('') || '<p class="text-muted">No pending withdrawals.</p>';
       } else if (tab === 'users') {
         const { data } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').order('created_at', { ascending: false });
+        const { data: activeMiners } = await window.supabaseClient.from('miners').select('id, name').eq('is_active', true).order('price', { ascending: true });
+        document.getElementById('manageMiner').innerHTML = '<option value="">Select package...</option>' + (activeMiners || []).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
         document.getElementById('userList').innerHTML = data?.map(u => `
-          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+          <div class="glass glass-card user-row" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-weight:700;">${u.full_name || 'Unknown'} ${u.is_admin ? '<span class="tag tag-level">ADMIN</span>' : ''}</div>
               <div style="font-size:12px; color:var(--text-muted);">${u.email} • Bal: ₦${Number(u.wallets?.balance || 0).toLocaleString()}</div>
             </div>
-            <button class="btn-sm btn-action" onclick="impersonateUser('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">Login as user</button>
+            <div class="user-actions"><button class="btn-sm btn-action" onclick="openManageModal('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}', '${u.email || ''}')">Manage</button><button class="btn-sm btn-action" onclick="impersonateUser('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">Login as user</button></div>
           </div>`).join('') || '<p class="text-muted">No users found.</p>';
       } else if (tab === 'gift-codes') {
         const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', { ascending: false });
@@ -231,6 +255,38 @@
         loadTabData('miners');
       }
     }
+
+    let managedUserId = null;
+    function openManageModal(userId, userName, email) {
+      managedUserId = userId;
+      document.getElementById('manageTitle').textContent = `Manage ${userName}`;
+      document.getElementById('manageSubtitle').textContent = email || 'User account';
+      document.getElementById('manageAmount').value = '';
+      document.getElementById('manageMiner').value = '';
+      document.getElementById('manageModal').classList.add('show');
+    }
+    function closeManageModal() {
+      managedUserId = null;
+      document.getElementById('manageModal').classList.remove('show');
+    }
+    async function adjustUserBalance(direction) {
+      if (!managedUserId) return;
+      const amount = Number(document.getElementById('manageAmount').value);
+      if (!Number.isFinite(amount) || amount <= 0) return alert('Enter a valid amount.');
+      if (!confirm(`${direction > 0 ? 'Add' : 'Deduct'} ₦${amount.toLocaleString()} ${direction > 0 ? 'to' : 'from'} this user's balance?`)) return;
+      const res = await callAdmin('adjust_balance', { user_id: managedUserId, amount: direction * amount });
+      alert(res.message || res.error);
+      if (res.success) { closeManageModal(); loadTabData('users'); }
+    }
+    async function grantUserMiner() {
+      if (!managedUserId) return;
+      const minerId = document.getElementById('manageMiner').value;
+      if (!minerId) return alert('Select a package first.');
+      const res = await callAdmin('assign_miner', { user_id: managedUserId, miner_id: minerId });
+      alert(res.message || res.error);
+      if (res.success) { closeManageModal(); loadTabData('users'); }
+    }
+    document.getElementById('manageModal').addEventListener('click', e => { if (e.target.id === 'manageModal') closeManageModal(); });
 
     async function impersonateUser(userId, userName) {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
