@@ -13,9 +13,10 @@
     .admin-top-nav button { white-space: nowrap; padding: 10px 20px; background: transparent; border: 1px solid var(--glass-border); border-radius: 10px; color: var(--text-muted); font-family: 'Rajdhani'; font-weight: 700; cursor: pointer; transition: 0.3s; }
     .admin-top-nav button.active { background: var(--primary); color: white; border-color: var(--primary); }
     .admin-content { padding: 20px; max-width: 1200px; margin: 0 auto; }
-    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); z-index: 999; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex; }
-    .modal-content { background: #0f172a; border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .admin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
   </style>
 </head>
 <body>
@@ -26,45 +27,46 @@
   </header>
 
   <div class="admin-top-nav glass">
-    <button class="active" onclick="showTab('dashboard')">Dashboard</button>
-    <button onclick="showTab('deposits')">Deposits</button>
-    <button onclick="showTab('withdrawals')">Withdrawals</button>
-    <button onclick="showTab('users')">Users</button>
-    <button onclick="showTab('gift-codes')">Gift Codes</button>
-    <button onclick="showTab('settings')">Settings</button>
+    <button class="active" onclick="showTab('dashboard', this)">Dashboard</button>
+    <button onclick="showTab('deposits', this)">Deposits</button>
+    <button onclick="showTab('withdrawals', this)">Withdrawals</button>
+    <button onclick="showTab('users', this)">Users</button>
+    <button onclick="showTab('gift-codes', this)">Gift Codes</button>
+    <button onclick="showTab('miners', this)">Miners</button>
+    <button onclick="showTab('settings', this)">Settings</button>
   </div>
 
   <main class="admin-content">
     <!-- DASHBOARD -->
-    <section id="dashboard" class="tab-content">
+    <section id="dashboard" class="tab-content active">
       <h2 class="page-title">Overview</h2>
-      <div class="admin-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:15px;">
+      <div class="admin-grid">
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Users</div><div class="value text-accent" id="statUsers" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
-        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Deposits</div><div class="value text-warning" id="statPendDep" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
-        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Withdrawals</div><div class="value text-danger" id="statPendWith" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Completed Deposits</div><div class="value text-success" id="statDeposits" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Actions</div><div class="value text-warning" id="statPending" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
       </div>
     </section>
 
     <!-- DEPOSITS -->
-    <section id="deposits" class="tab-content" style="display:none;">
+    <section id="deposits" class="tab-content">
       <h2 class="page-title">Pending Deposits</h2>
       <div id="depositList"></div>
     </section>
 
     <!-- WITHDRAWALS -->
-    <section id="withdrawals" class="tab-content" style="display:none;">
+    <section id="withdrawals" class="tab-content">
       <h2 class="page-title">Pending Withdrawals</h2>
       <div id="withdrawalList"></div>
     </section>
 
     <!-- USERS -->
-    <section id="users" class="tab-content" style="display:none;">
+    <section id="users" class="tab-content">
       <h2 class="page-title">All Users</h2>
       <div id="userList"></div>
     </section>
 
     <!-- GIFT CODES -->
-    <section id="gift-codes" class="tab-content" style="display:none;">
+    <section id="gift-codes" class="tab-content">
       <h2 class="page-title">Gift Codes</h2>
       <div class="glass glass-card" style="margin-bottom:20px;">
         <form id="giftForm" style="display:flex; gap:10px;">
@@ -76,33 +78,47 @@
       <div id="giftList"></div>
     </section>
 
+    <!-- MINERS -->
+    <section id="miners" class="tab-content">
+      <h2 class="page-title">Mining Packages</h2>
+      <div class="glass glass-card" style="margin-bottom:20px;">
+        <h3 style="margin-bottom:15px; font-family:'Orbitron'; font-size:14px;">Add New Package</h3>
+        <form id="addMinerForm" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <input type="text" name="name" class="form-input" placeholder="Package Name" required>
+          <input type="number" name="price" class="form-input" placeholder="Price" required>
+          <input type="number" name="daily_revenue" class="form-input" placeholder="Daily Revenue" required>
+          <input type="number" name="duration_days" class="form-input" placeholder="Duration (Days)" required>
+          <input type="number" name="purchase_limit" class="form-input" placeholder="Purchase Limit" value="5">
+          <input type="text" name="image_url" class="form-input" placeholder="Image URL (Optional)">
+          <div style="grid-column:1/-1;"><button type="submit" class="btn-primary">Create Package</button></div>
+        </form>
+      </div>
+      <div id="minersList"></div>
+    </section>
+
     <!-- SETTINGS -->
-    <section id="settings" class="tab-content" style="display:none;">
+    <section id="settings" class="tab-content">
       <h2 class="page-title">Global Settings</h2>
       <div class="glass glass-card">
         <form id="settingsForm" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
           <div class="form-group"><label class="form-label">Welcome Bonus</label><input type="number" name="welcome_bonus_amount" class="form-input"></div>
           <div class="form-group"><label class="form-label">Min Withdrawal</label><input type="number" name="min_withdrawal" class="form-input"></div>
           <div class="form-group"><label class="form-label">Withdrawal Fee (%)</label><input type="number" name="withdrawal_fee_percent" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Min Deposit</label><input type="number" name="deposit_min_amount" class="form-input"></div>
           <div class="form-group"><label class="form-label">Bank Name</label><input type="text" name="bank_name" class="form-input"></div>
           <div class="form-group"><label class="form-label">Account Number</label><input type="text" name="account_number" class="form-input"></div>
           <div class="form-group"><label class="form-label">Account Name</label><input type="text" name="account_name" class="form-input"></div>
+          <div class="form-group"><label class="form-label">WhatsApp Link</label><input type="text" name="whatsapp_link" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Telegram Link</label><input type="text" name="telegram_link" class="form-input"></div>
+          <div class="form-group"><label class="form-label">Weekday Start</label><input type="text" name="withdrawal_weekday_start" class="form-input" placeholder="08:00"></div>
+          <div class="form-group"><label class="form-label">Weekday End</label><input type="text" name="withdrawal_weekday_end" class="form-input" placeholder="18:00"></div>
+          <div class="form-group"><label class="form-label">Weekend Start</label><input type="text" name="withdrawal_weekend_start" class="form-input" placeholder="10:00"></div>
+          <div class="form-group"><label class="form-label">Weekend End</label><input type="text" name="withdrawal_weekend_end" class="form-input" placeholder="17:00"></div>
           <div style="grid-column: 1/-1;"><button type="submit" class="btn-primary">Save Settings</button></div>
         </form>
       </div>
     </section>
   </main>
-
-  <!-- User Detail Modal -->
-  <div id="userModal" class="modal-overlay">
-    <div class="modal-content glass">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h3 style="font-family:'Orbitron';">User Details</h3>
-        <button onclick="closeModal()" class="icon-btn">✕</button>
-      </div>
-      <div id="modalBody"></div>
-    </div>
-  </div>
 
   <script src="../assets/js/api-client.js"></script>
   <script>
@@ -116,24 +132,24 @@
       return await res.json();
     }
 
-    function showTab(id) {
-      document.querySelectorAll('.tab-content').forEach(s => s.style.display = 'none');
+    function showTab(id, btn) {
+      document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
       document.querySelectorAll('.admin-top-nav button').forEach(b => b.classList.remove('active'));
-      document.getElementById(id).style.display = 'block';
-      event.target.classList.add('active');
+      document.getElementById(id).classList.add('active');
+      if (btn) btn.classList.add('active');
       loadTabData(id);
     }
 
     async function loadTabData(tab) {
       if (tab === 'dashboard') {
         const res = await callAdmin('get_stats');
-        if(res.success) {
+        if (res.success) {
           document.getElementById('statUsers').textContent = res.data.users;
-          document.getElementById('statPendDep').textContent = res.data.pendingDeposits || 0;
-          document.getElementById('statPendWith').textContent = res.data.pendingWithdrawals || 0;
+          document.getElementById('statDeposits').textContent = res.data.deposits;
+          document.getElementById('statPending').textContent = res.data.pending;
         }
       } else if (tab === 'deposits') {
-        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'deposit').eq('status', 'pending').order('created_at', {ascending: false});
+        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'deposit').eq('status', 'pending').order('created_at', { ascending: false });
         document.getElementById('depositList').innerHTML = data?.map(d => `
           <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <div><div style="font-weight:700;">${d.profiles?.full_name || 'Unknown'}</div><div style="font-size:12px; color:var(--text-muted);">${d.reference} • ₦${Number(d.amount).toLocaleString()}</div></div>
@@ -143,7 +159,7 @@
             </div>
           </div>`).join('') || '<p class="text-muted">No pending deposits.</p>';
       } else if (tab === 'withdrawals') {
-        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'withdrawal').eq('status', 'pending').order('created_at', {ascending: false});
+        const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'withdrawal').eq('status', 'pending').order('created_at', { ascending: false });
         document.getElementById('withdrawalList').innerHTML = data?.map(d => `
           <div class="glass glass-card" style="margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
@@ -156,65 +172,83 @@
             <div style="font-size:12px; color:var(--text-muted);">Bank: ${d.bank_name} | Acct: ${d.account_number} | Name: ${d.account_name}</div>
           </div>`).join('') || '<p class="text-muted">No pending withdrawals.</p>';
       } else if (tab === 'users') {
-        const { data } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').order('created_at', {ascending: false});
+        const { data } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').order('created_at', { ascending: false });
         document.getElementById('userList').innerHTML = data?.map(u => `
-          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="viewUser('${u.id}')">
+          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
             <div>
               <div style="font-weight:700;">${u.full_name || 'Unknown'} ${u.is_admin ? '<span class="tag tag-level">ADMIN</span>' : ''}</div>
               <div style="font-size:12px; color:var(--text-muted);">${u.email} • Bal: ₦${Number(u.wallets?.balance || 0).toLocaleString()}</div>
             </div>
-            <button class="btn-sm btn-action">View</button>
+            <a href="user-view.html?id=${u.id}" class="btn-sm btn-action">View</a>
           </div>`).join('') || '<p class="text-muted">No users found.</p>';
       } else if (tab === 'gift-codes') {
-        const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', {ascending: false});
+        const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', { ascending: false });
         document.getElementById('giftList').innerHTML = data?.map(g => `
           <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between;">
             <div><div style="font-family:'Orbitron'; font-weight:700;">${g.code}</div><div style="font-size:12px; color:var(--text-muted);">₦${Number(g.amount).toLocaleString()} • ${g.is_used ? 'Used' : 'Active'}</div></div>
           </div>`).join('') || '<p class="text-muted">No gift codes.</p>';
+      } else if (tab === 'miners') {
+        const { data } = await window.supabaseClient.from('miners').select('*').order('price', { ascending: true });
+        document.getElementById('minersList').innerHTML = data?.map(m => `
+          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700;">${m.name}</div>
+              <div style="font-size:12px; color:var(--text-muted);">Price: ₦${Number(m.price).toLocaleString()} • Daily: ₦${Number(m.daily_revenue).toLocaleString()} • ${m.duration_days} Days</div>
+            </div>
+            <button class="btn-sm btn-reject" onclick="deleteMiner('${m.id}')">Deactivate</button>
+          </div>`).join('') || '<p class="text-muted">No packages found.</p>';
       } else if (tab === 'settings') {
         const { data } = await window.supabaseClient.from('settings').select('*');
         const form = document.getElementById('settingsForm');
-        data.forEach(s => { if(form[s.key]) form[s.key].value = s.value; });
+        data.forEach(s => { if (form[s.key]) form[s.key].value = s.value; });
       }
     }
 
-    async function approveTx(id, type) { await callAdmin(`approve_${type}`, {id}); loadTabData(type+'s'); }
-    async function rejectTx(id, type) { await callAdmin(`reject_${type}`, {id}); loadTabData(type+'s'); }
-
-    async function viewUser(userId) {
-      const { data: user } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').eq('id', userId).single();
-      const { count: teamCount } = await window.supabaseClient.from('profiles').select('*', {count:'exact', head:true}).eq('referred_by', userId);
-      const { data: txs } = await window.supabaseClient.from('transactions').select('*').eq('user_id', userId).order('created_at', {ascending:false}).limit(5);
-
-      document.getElementById('modalBody').innerHTML = `
-        <div style="margin-bottom:15px;"><strong>Name:</strong> ${user.full_name}<br><strong>Email:</strong> ${user.email}<br><strong>Balance:</strong> ₦${Number(user.wallets?.balance||0).toLocaleString()}<br><strong>Total Deposited:</strong> ₦${Number(user.total_deposited||0).toLocaleString()}<br><strong>Team Size:</strong> ${teamCount||0}</div>
-        <h4 style="margin-bottom:10px; font-family:'Orbitron'; font-size:14px;">Recent Transactions</h4>
-        ${txs?.map(t => `<div style="font-size:12px; padding:8px; background:rgba(255,255,255,0.05); border-radius:8px; margin-bottom:5px; display:flex; justify-content:space-between;"><span>${t.type}</span><span>₦${Number(t.amount).toLocaleString()} (${t.status})</span></div>`).join('') || 'No transactions'}
-        <div style="margin-top:20px; display:flex; gap:10px;">
-          <button class="btn-sm ${user.is_active ? 'btn-reject' : 'btn-approve'}" onclick="toggleBan('${userId}', ${user.is_active})">${user.is_active ? 'Ban User' : 'Unban User'}</button>
-        </div>
-      `;
-      document.getElementById('userModal').classList.add('show');
+    async function approveTx(id, type) {
+      const res = await callAdmin(`approve_${type}`, { id });
+      alert(res.message || res.error);
+      loadTabData(type + 's');
     }
 
-    async function toggleBan(userId, currentStatus) {
-      await callAdmin('toggle_ban', {user_id: userId, is_active: currentStatus});
-      closeModal(); loadTabData('users');
+    async function rejectTx(id, type) {
+      const res = await callAdmin(`reject_${type}`, { id });
+      alert(res.message || res.error);
+      loadTabData(type + 's');
     }
 
-    function closeModal() { document.getElementById('userModal').classList.remove('show'); }
+    async function deleteMiner(id) {
+      if (confirm('Deactivate this package?')) {
+        const res = await callAdmin('delete_miner', { id });
+        alert(res.message || res.error);
+        loadTabData('miners');
+      }
+    }
 
     document.getElementById('giftForm').addEventListener('submit', async e => {
       e.preventDefault();
-      await callAdmin('create_gift_code', { code: document.getElementById('newCode').value, amount: document.getElementById('newAmount').value });
-      e.target.reset(); loadTabData('gift-codes');
+      const res = await callAdmin('create_gift_code', { code: document.getElementById('newCode').value, amount: document.getElementById('newAmount').value });
+      alert(res.message || res.error);
+      if (res.success) { e.target.reset(); loadTabData('gift-codes'); }
+    });
+
+    document.getElementById('addMinerForm').addEventListener('submit', async e => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const payload = Object.fromEntries(formData.entries());
+      payload.price = parseFloat(payload.price);
+      payload.daily_revenue = parseFloat(payload.daily_revenue);
+      payload.duration_days = parseInt(payload.duration_days);
+      payload.purchase_limit = parseInt(payload.purchase_limit);
+      const res = await callAdmin('create_miner', payload);
+      alert(res.message || res.error);
+      if (res.success) { e.target.reset(); loadTabData('miners'); }
     });
 
     document.getElementById('settingsForm').addEventListener('submit', async e => {
       e.preventDefault();
       const payload = Object.fromEntries(new FormData(e.target));
-      await callAdmin('update_settings', payload);
-      showToast('Settings saved!', 'success');
+      const res = await callAdmin('update_settings', payload);
+      alert(res.message || res.error);
     });
 
     document.addEventListener('DOMContentLoaded', () => loadTabData('dashboard'));
