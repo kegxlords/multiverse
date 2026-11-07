@@ -19,12 +19,16 @@
   <header class="app-header glass">
     <a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a>
     <div class="logo" style="font-size: 18px;">MINER CATALOG</div>
-    <div style="width: 40px;"></div>
+    <a href="profile.html" class="icon-btn" aria-label="Profile" style="text-decoration:none;">⌾</a>
   </header>
 
   <main class="main-content">
     <h1 class="page-title">Choose Your Rig</h1>
     <p class="page-subtitle">Select a mining package to start generating cosmic income.</p>
+    <div class="glass" style="display:flex; gap:10px; margin-bottom:20px; padding:12px; border-radius:16px;">
+      <a href="my-miners.html" class="btn-primary" style="flex:1; text-align:center;">My Miners</a>
+      <a href="profile.html" class="btn-primary" style="flex:1; text-align:center; background:rgba(255,255,255,.06); border:1px solid var(--glass-border);">Profile</a>
+    </div>
 
     <div id="minerCatalog" class="miner-list">
       <div class="glass glass-card" style="text-align:center; padding: 30px;">Loading packages...</div>
