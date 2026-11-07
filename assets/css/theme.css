@@ -1,0 +1,131 @@
+/* ==========================================
+   MULTIVERSE THEME & VARIABLES
+   ========================================== */
+:root {
+  /* Cosmic Colors */
+  --primary: #8B5CF6;       /* Cosmic Purple */
+  --primary-glow: rgba(139, 92, 246, 0.4);
+  --accent: #06B6D4;        /* Neon Cyan */
+  --accent-glow: rgba(6, 182, 212, 0.4);
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  
+  /* Text & Glass */
+  --text-main: #F8FAFC;
+  --text-muted: #94A3B8;
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: 16px;
+  
+  /* Layout */
+  --header-height: 70px;
+  --footer-height: 80px;
+}
+
+/* ==========================================
+   STICKY UNIVERSE BACKGROUND
+   ========================================== */
+body {
+  background-color: #020617;
+}
+
+.universe-bg {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100vh;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+    linear-gradient(135deg, #020617 0%, #0f172a 50%, #1e1b4b 100%);
+  background-size: cover;
+}
+
+/* Starry effect overlay */
+.universe-bg::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-image: 
+    radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+    radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+    radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px);
+  background-size: 550px 550px, 350px 350px, 250px 250px;
+  background-position: 0 0, 40px 60px, 130px 270px;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* ==========================================
+   UNIVERSE LOADER
+   ========================================== */
+.loader-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: #020617;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+.loader-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.galaxy-loader {
+  position: relative;
+  width: 80px; height: 80px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.galaxy-core {
+  width: 16px; height: 16px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 20px var(--accent), 0 0 40px var(--primary);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.galaxy-ring {
+  position: absolute;
+  border: 2px solid transparent;
+  border-top-color: var(--primary);
+  border-right-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+}
+
+.ring-1 { width: 50px; height: 50px; animation-duration: 2s; }
+.ring-2 { width: 70px; height: 70px; animation-duration: 3s; border-top-color: var(--accent); border-right-color: var(--primary); }
+
+.loader-text {
+  margin-top: 25px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: var(--text-muted);
+  animation: pulse 2s infinite ease-in-out;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+
+/* ==========================================
+   GLASSMORPHISM UTILITIES
+   ========================================== */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-card {
+  border-radius: 20px;
+  padding: 24px;
+}
