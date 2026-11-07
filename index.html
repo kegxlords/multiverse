@@ -4,40 +4,43 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>MultiVerse - Login</title>
-  
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- Sticky Universe Background -->
   <div class="universe-bg"></div>
 
-  <!-- Universe Loader -->
   <div id="universeLoader" class="loader-overlay">
     <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
     <div class="loader-text">ENTERING MULTIVERSE</div>
   </div>
 
-  <!-- Login Content -->
   <div class="auth-wrapper">
     <div class="auth-card glass">
       <div class="auth-content">
         <div class="auth-logo">MULTIVERSE</div>
         <p class="auth-subtitle">Sign in to manage your cosmic portfolio</p>
 
+        <div id="alertBox" class="alert"></div>
+
         <form id="loginForm">
           <div class="form-group">
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-input" placeholder="explorer@multiverse.com" required />
+            <input type="email" id="email" class="form-input" placeholder="explorer@multiverse.com" required />
           </div>
           <div class="form-group">
             <label class="form-label">Password</label>
-            <input type="password" class="form-input" placeholder="Enter your password" required />
+            <input type="password" id="password" class="form-input" placeholder="Enter your password" required />
           </div>
           
-          <button type="submit" class="btn-primary">INITIATE LOGIN</button>
+          <div style="text-align: right; margin-bottom: 15px;">
+            <a href="forgot-password.html" style="font-size: 13px; color: var(--accent);">Forgot Password?</a>
+          </div>
+
+          <button type="submit" id="loginBtn" class="btn-primary">INITIATE LOGIN</button>
         </form>
 
         <div class="auth-links">
@@ -47,6 +50,44 @@
     </div>
   </div>
 
+  <script src="assets/js/api-client.js"></script>
   <script src="assets/js/app.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('loginBtn');
+      const alertBox = document.getElementById('alertBox');
+
+      alertBox.className = 'alert';
+      btn.disabled = true;
+      btn.innerText = 'AUTHENTICATING...';
+
+      const { data, error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        alertBox.textContent = error.message;
+        alertBox.className = 'alert alert-error show';
+        btn.disabled = false;
+        btn.innerText = 'INITIATE LOGIN';
+      } else {
+        // Check if user is banned
+        const { data: profile } = await window.supabaseClient.from('profiles').select('is_active').eq('id', data.user.id).single();
+        
+        if (profile && profile.is_active === false) {
+          await window.supabaseClient.auth.signOut();
+          alertBox.textContent = '⚠️ Your account has been suspended.';
+          alertBox.className = 'alert alert-error show';
+          btn.disabled = false;
+          btn.innerText = 'INITIATE LOGIN';
+        } else {
+          alertBox.textContent = '✅ Access Granted. Entering Dashboard...';
+          alertBox.className = 'alert alert-success show';
+          setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        }
+      }
+    });
+  </script>
 </body>
 </html>
