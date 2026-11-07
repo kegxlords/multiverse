@@ -26,9 +26,9 @@
     <h1 class="page-title">Withdraw to Bank</h1>
     <p class="page-subtitle">Transfer your earnings to your bank account</p>
 
-    <div class="time-restriction-notice">
+    <div class="time-restriction-notice" id="withdrawalHoursNotice">
       <span>⏰</span>
-      <div><strong>Withdrawal Hours:</strong><br>Mon-Fri: 8:00 AM - 6:00 PM | Weekends: 10:00 AM - 5:00 PM</div>
+      <div><strong>Withdrawal Hours:</strong><br><span id="withdrawalHoursText">Loading hours...</span></div>
     </div>
 
     <div id="alertBox" class="alert"></div>
@@ -80,14 +80,34 @@
     let userBalance = 0;
     let minWithdrawal = 1000;
 
+    function formatTime(value, fallback) {
+      const text = String(value || fallback || '').trim();
+      const match = text.match(/^(\d{1,2}):(\d{2})$/);
+      if (!match) return text || fallback;
+      const hours = Number(match[1]);
+      const minutes = match[2];
+      if (hours > 23) return text;
+      const suffix = hours >= 12 ? 'PM' : 'AM';
+      const displayHour = hours % 12 || 12;
+      return `${displayHour}:${minutes} ${suffix}`;
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       
-      // Load settings
-      const { data: settings } = await window.supabaseClient.from('settings').select('*').in('key', ['withdrawal_fee_percent', 'min_withdrawal']);
+      // Load settings, including the hours configured by the administrator.
+      const { data: settings, error: settingsError } = await window.supabaseClient.from('settings').select('key,value').in('key', [
+        'withdrawal_fee_percent', 'min_withdrawal',
+        'withdrawal_weekday_start', 'withdrawal_weekday_end',
+        'withdrawal_weekend_start', 'withdrawal_weekend_end'
+      ]);
       feePercent = parseFloat(settings?.find(s => s.key === 'withdrawal_fee_percent')?.value || 8);
       minWithdrawal = parseFloat(settings?.find(s => s.key === 'min_withdrawal')?.value || 1000);
       document.getElementById('feePercent').textContent = feePercent;
+      const getSetting = (key, fallback) => settings?.find(s => s.key === key)?.value || fallback;
+      document.getElementById('withdrawalHoursText').textContent = settingsError
+        ? 'Unable to load configured hours'
+        : `Mon-Fri: ${formatTime(getSetting('withdrawal_weekday_start', '08:00'), '08:00')} - ${formatTime(getSetting('withdrawal_weekday_end', '18:00'), '18:00')} | Weekends: ${formatTime(getSetting('withdrawal_weekend_start', '10:00'), '10:00')} - ${formatTime(getSetting('withdrawal_weekend_end', '17:00'), '17:00')}`;
 
       // Load balance
       const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
