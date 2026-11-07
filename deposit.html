@@ -62,7 +62,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">Sender Name</label>
-          <input type="text" id="depositRef" class="form-input" placeholder="Sender name" />
+          <input type="text" id="senderName" class="form-input" placeholder="Name on the sending bank account" required />
         </div>
         <button type="submit" class="btn-primary">SUBMIT DEPOSIT</button>
       </form>
@@ -114,7 +114,7 @@
     document.getElementById('depositForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const amount = parseFloat(document.getElementById('depositAmount').value);
-      const ref = document.getElementById('depositRef').value.trim();
+      const senderName = document.getElementById('senderName').value.trim();
       const btn = e.target.querySelector('button');
       const alertBox = document.getElementById('alertBox');
 
@@ -131,7 +131,7 @@
       const res = await fetch('/api/wallet-transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ action: 'deposit', amount, bank_name: bankName, account_number: accountNumber, account_name: accountName })
+        body: JSON.stringify({ action: 'deposit', amount, sender_name: senderName, bank_name: bankName, account_number: accountNumber, account_name: accountName })
       });
       
       const result = await res.json();
