@@ -2,144 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MultiVerse - Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MultiVerse — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/theme.css" />
-  <link rel="stylesheet" href="assets/css/styles.css" />
+  <link rel="stylesheet" href="assets/css/theme.css" /><link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
-    .modal-overlay.show { display: flex; }
-    .modal-content { background: #0f172a; border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; width: 100%; max-width: 400px; text-align: center; position: relative; }
-    .modal-close { position: absolute; top: 15px; right: 15px; background: transparent; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+    .dashboard-hero{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:24px}.eyebrow{color:var(--accent);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px}.hero-title{font-size:clamp(23px,5vw,34px);margin-bottom:8px}.hero-copy{max-width:520px;color:var(--text-muted);line-height:1.5}.dashboard-mark{width:70px;height:70px;display:grid;place-items:center;border-radius:22px;background:linear-gradient(145deg,rgba(139,92,246,.32),rgba(6,182,212,.2));border:1px solid var(--glass-border);color:var(--accent);box-shadow:0 0 35px var(--primary-glow)}.section-heading{display:flex;justify-content:space-between;align-items:center;margin:26px 0 13px}.section-heading h2{font-size:16px}.section-heading a{color:var(--accent);font-size:12px;font-weight:700}.welcome-panel{display:flex;align-items:center;gap:15px;margin-bottom:20px;padding:15px 17px;border-radius:18px;background:linear-gradient(105deg,rgba(6,182,212,.13),rgba(139,92,246,.13));border:1px solid var(--glass-border)}.welcome-panel svg{color:var(--accent);flex:none}.welcome-panel strong{display:block;margin-bottom:3px}.welcome-panel span{display:block;color:var(--text-muted);font-size:13px;line-height:1.4}@media(max-width:560px){.dashboard-hero{align-items:flex-start}.dashboard-mark{width:52px;height:52px;border-radius:16px}.dashboard-mark svg{width:26px;height:26px}}
   </style>
 </head>
-<body>
-  <div class="universe-bg"></div>
-  <div id="universeLoader" class="loader-overlay">
-    <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
-    <div class="loader-text">ENTERING MULTIVERSE</div>
-  </div>
-
-  <header class="app-header glass">
-    <div class="logo"><div class="logo-icon">M</div> MULTIVERSE</div>
-    <div class="header-actions">
-      <a href="notifications.html" class="icon-btn">🔔</a>
-      <a href="profile.html" class="icon-btn">👤</a>
-    </div>
-  </header>
-
-  <main class="main-content">
-    <h1 class="page-title">Welcome, Explorer</h1>
-    <p class="page-subtitle">Your cosmic mining operations are running smoothly.</p>
-
-    <div class="stat-grid">
-      <div class="glass glass-card stat-card">
-        <div class="glow"></div>
-        <div class="label">Total Balance</div>
-        <div class="value text-accent" id="dashBalance">₦0.00</div>
-      </div>
-      <div class="glass glass-card stat-card">
-        <div class="glow" style="background: var(--accent-glow);"></div>
-        <div class="label">Daily Yield</div>
-        <div class="value text-success" id="dashYield">₦0.00</div>
-      </div>
-    </div>
-
-    <h3 style="font-family: 'Orbitron'; font-size: 16px; margin-bottom: 15px;">Quick Actions</h3>
-    <div class="quick-actions">
-      <a href="deposit.html" class="glass action-btn"><div class="action-icon">💳</div><span>Deposit</span></a>
-      <a href="withdraw.html" class="glass action-btn"><div class="action-icon">💸</div><span>Withdraw</span></a>
-      <a href="gift-code.html" class="glass action-btn"><div class="action-icon">🎁</div><span>Gift Code</span></a>
-      <a id="telegramBtn" href="#" target="_blank" class="glass action-btn"><div class="action-icon">✈️</div><span>Telegram</span></a>
-    </div>
-
-    <h3 style="font-family: 'Orbitron'; font-size: 16px; margin-bottom: 15px;">Active Miners</h3>
-    <div id="activeMinersList" class="miner-list">
-      <div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading miners...</div>
-    </div>
-  </main>
-
-  <!-- Welcome Modal -->
-  <div id="welcomeModal" class="modal-overlay">
-    <div class="modal-content glass">
-      <button onclick="closeWelcomeModal()" class="modal-close">✕</button>
-      <div style="font-size: 40px; margin-bottom: 15px;">🌌</div>
-      <h2 style="font-family: 'Orbitron'; font-size: 22px; margin-bottom: 10px; color: var(--accent);">Welcome Back!</h2>
-      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;">Your cosmic mining operations are active. Join our community for exclusive tips, gift codes, and support!</p>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px;">
-        <a id="waLink" href="#" target="_blank" class="btn-primary" style="background: linear-gradient(135deg, #25D366, #128C7E); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <span>💬</span> Join WhatsApp Group
-        </a>
-        <a id="tgLink" href="#" target="_blank" class="btn-primary" style="background: linear-gradient(135deg, #0088cc, #005f8f); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          <span>✈️</span> Join Telegram Channel
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <nav class="bottom-nav glass">
-    <a href="dashboard.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
-    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Miners</span></a>
-    <a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
-    <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Team</span></a>
-    <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
-  </nav>
-
-  <script src="assets/js/api-client.js"></script>
-  <script src="assets/js/auth-guard.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script>
-    function closeWelcomeModal() { document.getElementById('welcomeModal').classList.remove('show'); }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (!session) return;
-
-      // Fetch Balance
-      const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
-      document.getElementById('dashBalance').innerText = '₦' + Number(wallet?.balance || 0).toLocaleString();
-
-      // Fetch Active Miners & Calculate Yield
-      const { data: miners } = await window.supabaseClient.from('user_miners').select('*, miners(name, daily_revenue, duration_days)').eq('user_id', session.user.id).eq('status', 'active');
-      
-      let dailyYield = 0;
-      const list = document.getElementById('activeMinersList');
-      
-      if (miners && miners.length > 0) {
-        list.innerHTML = '';
-        miners.forEach(m => {
-          dailyYield += Number(m.miners.daily_revenue);
-          const progress = Math.min(100, Math.round((m.days_collected / m.miners.duration_days) * 100));
-          list.innerHTML += `
-            <div class="glass glass-card miner-card">
-              <div class="miner-info">
-                <div class="miner-name">${m.miners.name}</div>
-                <div class="miner-specs"><span>Yield: <b>₦${Number(m.miners.daily_revenue).toLocaleString()}</b></span></div>
-                <div class="progress-container"><div class="progress-bar" style="width: ${progress}%"></div></div>
-                <span class="status-badge status-active">Day ${m.days_collected} / ${m.miners.duration_days}</span>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">No active miners. <a href="rent-miners.html" style="color: var(--accent);">Rent one now!</a></div>';
-      }
-      document.getElementById('dashYield').innerText = '₦' + dailyYield.toLocaleString();
-
-      // Fetch Settings for Links
-      const { data: settings } = await window.supabaseClient.from('settings').select('*').in('key', ['whatsapp_link', 'telegram_link']);
-      const getLink = (k) => settings?.find(s => s.key === k)?.value || '#';
-      
-      document.getElementById('waLink').href = getLink('whatsapp_link');
-      document.getElementById('tgLink').href = getLink('telegram_link');
-      document.getElementById('telegramBtn').href = getLink('telegram_link');
-      
-      // Show welcome modal on every visit
-      document.getElementById('welcomeModal').classList.add('show');
-    });
-  </script>
-</body>
-</html>
+<body><div class="universe-bg"></div><div id="universeLoader" class="loader-overlay"><img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg"/><div class="loader-text">ENTERING MULTIVERSE</div></div>
+<header class="app-header glass"><div class="logo"><div class="logo-icon">M</div> MULTIVERSE</div><div class="header-actions"><a href="notifications.html" class="icon-btn" aria-label="Notifications" data-icon="bell"></a><a href="profile.html" class="icon-btn" aria-label="Profile" data-icon="user"></a></div></header>
+<main class="main-content"><section class="dashboard-hero"><div><div class="eyebrow">Portfolio command center</div><h1 class="hero-title">Welcome, <span id="dashName">Explorer</span></h1><p class="hero-copy">Track your balance, active miners, and daily yield from one quiet corner of the Multiverse.</p></div><div class="dashboard-mark" data-icon="chart" data-icon-size="34"></div></section>
+<div class="welcome-panel"><span data-icon="shield" data-icon-size="22"></span><div><strong>Operations are online</strong><span>Your account is protected by Supabase authentication and server-side transaction controls.</span></div></div>
+<section class="stat-grid"><div class="glass glass-card stat-card"><div class="glow"></div><div class="label">Available balance</div><div class="value text-accent" id="dashBalance">₦0.00</div></div><div class="glass glass-card stat-card"><div class="glow" style="background:var(--accent-glow);"></div><div class="label">Daily yield</div><div class="value text-success" id="dashYield">₦0.00</div></div></section>
+<div class="section-heading"><h2>Quick actions</h2></div><div class="quick-actions"><a href="deposit.html" class="glass action-btn"><span class="action-icon" data-icon="card"></span><span class="action-label">Deposit</span></a><a href="withdraw.html" class="glass action-btn"><span class="action-icon" data-icon="send"></span><span class="action-label">Withdraw</span></a><a href="gift-code.html" class="glass action-btn"><span class="action-icon" data-icon="gift"></span><span class="action-label">Gift code</span></a><a id="telegramBtn" href="#" target="_blank" rel="noopener" class="glass action-btn"><span class="action-icon" data-icon="send"></span><span class="action-label">Community</span></a></div>
+<div class="section-heading"><h2>Active miners</h2><a href="rent-miners.html">Browse packages</a></div><div id="activeMinersList" class="miner-list"><div class="glass glass-card" style="text-align:center;color:var(--text-muted);">Loading operations...</div></div></main>
+<nav class="bottom-nav glass"><a href="dashboard.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a><a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Miners</span></a><a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H19a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5z"/><path d="M16 13h5M17 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2"/></svg><span>Wallet</span></a><a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M15 20a4.5 4.5 0 0 1 6 0"/></svg><span>Team</span></a><a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></a></nav>
+<script src="assets/js/api-client.js"></script><script src="assets/js/auth-guard.js"></script><script src="assets/js/app.js"></script><script>
+document.querySelectorAll('[data-icon]').forEach(el=>{el.innerHTML=window.MultiVerse.createIcon(el.dataset.icon,Number(el.dataset.iconSize||22));});const money=v=>'₦'+Number(v||0).toLocaleString();document.addEventListener('DOMContentLoaded',async()=>{const{data:{session}}=await window.supabaseClient.auth.getSession();if(!session)return;const{data:profile}=await window.supabaseClient.from('profiles').select('full_name').eq('id',session.user.id).maybeSingle();document.getElementById('dashName').textContent=profile?.full_name?.split(' ')[0]||'Explorer';const{data:wallet}=await window.supabaseClient.from('wallets').select('balance').eq('user_id',session.user.id).maybeSingle();document.getElementById('dashBalance').textContent=money(wallet?.balance);const{data:miners,error}=await window.supabaseClient.from('user_miners').select('*, miners(name,daily_revenue,duration_days)').eq('user_id',session.user.id).eq('status','active');const list=document.getElementById('activeMinersList');if(error){list.innerHTML='<div class="glass glass-card" style="text-align:center;color:var(--danger);">Unable to load miners. Please refresh.</div>';return}let dailyYield=0;if(miners?.length){list.innerHTML=miners.map(m=>{dailyYield+=Number(m.miners?.daily_revenue||0);const duration=Number(m.miners?.duration_days||1),progress=Math.min(100,Math.round((Number(m.days_collected||0)/duration)*100));return`<div class="glass glass-card miner-card"><div class="miner-info"><div class="miner-name">${m.miners?.name||'Mining package'}</div><div class="miner-specs"><span>Yield: <b>${money(m.miners?.daily_revenue)}</b></span><span>Day ${m.days_collected||0} / ${duration}</span></div><div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div></div></div>`}).join('')}else list.innerHTML='<div class="glass glass-card" style="text-align:center;color:var(--text-muted);">No active miners yet. <a href="rent-miners.html" style="color:var(--accent);">Explore packages</a></div>';document.getElementById('dashYield').textContent=money(dailyYield);const{data:settings}=await window.supabaseClient.from('settings').select('key,value').in('key',['telegram_link']);document.getElementById('telegramBtn').href=settings?.find(s=>s.key==='telegram_link')?.value||'#'});
+</script></body></html>
