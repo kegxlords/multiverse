@@ -21,50 +21,79 @@ export default async function handler(req, res) {
 
     // 2. ROUTE ACTIONS
     switch (action) {
-      
-      case 'get_stats':
+
+      case 'get_stats': {
         const [users, deposits, withdrawals] = await Promise.all([
           supabase.from('profiles').select('*', { count: 'exact', head: true }),
           supabase.from('transactions').select('amount', { count: 'exact', head: true }).eq('type', 'deposit').eq('status', 'completed'),
           supabase.from('transactions').select('*', { count: 'exact', head: true }).in('type', ['deposit', 'withdrawal']).eq('status', 'pending')
         ]);
         return res.json({ success: true, data: { users: users.count, deposits: deposits.count, pending: withdrawals.count } });
+      }
 
-      case 'update_settings':
+      case 'update_settings': {
         for (const [key, value] of Object.entries(payload)) {
           await supabase.from('settings').upsert({ key, value: String(value) });
         }
         return res.json({ success: true, message: 'Settings updated' });
+      }
 
-      case 'create_gift_code':
+      case 'create_gift_code': {
         const { error: codeErr } = await supabase.from('gift_codes').insert({ code: payload.code.toUpperCase(), amount: payload.amount });
         if (codeErr) throw new Error('Code already exists or invalid');
         return res.json({ success: true, message: 'Gift code created' });
+      }
 
-      case 'approve_deposit':
+      case 'approve_deposit': {
         await supabase.rpc('approve_transaction', { p_tx_id: payload.id, p_type: 'deposit' });
         return res.json({ success: true, message: 'Deposit approved and wallet credited' });
+      }
 
-      case 'reject_deposit':
+      case 'reject_deposit': {
         await supabase.from('transactions').update({ status: 'rejected' }).eq('id', payload.id);
         return res.json({ success: true, message: 'Deposit rejected' });
+      }
 
-      case 'approve_withdrawal':
+      case 'approve_withdrawal': {
         await supabase.from('transactions').update({ status: 'completed' }).eq('id', payload.id);
         return res.json({ success: true, message: 'Withdrawal marked as paid' });
+      }
 
-      case 'reject_withdrawal':
+      case 'reject_withdrawal': {
         await supabase.rpc('reject_transaction', { p_tx_id: payload.id, p_type: 'withdrawal' });
         return res.json({ success: true, message: 'Withdrawal rejected and balance refunded' });
+      }
 
-      case 'toggle_ban':
+      case 'toggle_ban': {
         const newStatus = !payload.is_active;
         await supabase.from('profiles').update({ is_active: newStatus }).eq('id', payload.user_id);
         return res.json({ success: true, message: `User ${newStatus ? 'unbanned' : 'banned'}` });
+      }
 
-      case 'manual_credit':
+      case 'manual_credit': {
         await supabase.rpc('manual_credit_user', { p_user_id: payload.user_id, p_amount: payload.amount });
         return res.json({ success: true, message: 'Wallet credited manually' });
+      }
+
+      case 'assign_miner': {
+        await supabase.rpc('admin_assign_miner', { p_user_id: payload.user_id, p_miner_id: payload.miner_id });
+        return res.json({ success: true, message: 'Miner assigned successfully' });
+      }
+
+      case 'create_miner': {
+        const { error: mErr } = await supabase.from('miners').insert({
+          name: payload.name, price: payload.price, daily_revenue: payload.daily_revenue,
+          duration_days: payload.duration_days, purchase_limit: payload.purchase_limit || 5,
+          image_url: payload.image_url || '', is_active: true
+        });
+        if (mErr) throw new Error(mErr.message);
+        return res.json({ success: true, message: 'Miner created' });
+      }
+
+      case 'delete_miner': {
+        await supabase.from('miners').update({ is_active: false }).eq('id', payload.id);
+        return res.json({ success: true, message: 'Miner deactivated' });
+      }
 
       default:
         throw new Error('Invalid action');
