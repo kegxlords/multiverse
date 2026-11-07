@@ -8,10 +8,14 @@ export const getSupabaseAdmin = () => {
 
 // Verify User Token
 export const getUser = async (req) => {
-  const authHeader = req.headers.get('authorization');
+  // Vercel's Node runtime exposes req.headers as a plain object. Supporting
+  // Headers as well keeps this helper compatible with both runtimes.
+  const authHeader = typeof req.headers?.get === 'function'
+    ? req.headers.get('authorization')
+    : req.headers?.authorization || req.headers?.Authorization;
   if (!authHeader) throw new Error('Unauthorized: No token provided');
   
-  const token = authHeader.replace('Bearer ', '');
+  const token = authHeader.replace(/^Bearer\s+/i, '');
   const supabase = getSupabaseAdmin();
   const { data: { user }, error } = await supabase.auth.getUser(token);
   
