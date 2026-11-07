@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error('Invalid token');
 
-    const { action, amount, bank_name, account_number, account_name } = req.body || {};
+    const { action, amount, sender_name, bank_name, account_number, account_name } = req.body || {};
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) throw new Error('Enter a valid amount');
 
@@ -30,9 +30,10 @@ export default async function handler(req, res) {
     if (action === 'deposit') {
       const minimum = Number(getSetting('deposit_min_amount') || 0);
       if (numericAmount < minimum) throw new Error(`Minimum deposit is ₦${minimum.toLocaleString()}`);
+      if (!String(sender_name || '').trim()) throw new Error('Sender name is required');
       const reference = 'DEP-' + crypto.randomUUID();
       const { error } = await supabase.from('transactions').insert({
-        user_id: user.id, type: 'deposit', amount: numericAmount, description: 'Deposit request',
+        user_id: user.id, type: 'deposit', amount: numericAmount, description: `Sender: ${String(sender_name).trim()}`,
         reference, status: 'pending', bank_name, account_number, account_name
       });
       if (error) throw new Error(error.message);
