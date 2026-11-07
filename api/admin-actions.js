@@ -69,9 +69,12 @@ export default async function handler(req, res) {
       }
 
       case 'toggle_ban': {
+        if (!payload.user_id) throw new Error('User is required');
+        if (payload.user_id === user.id) throw new Error('You cannot ban your own admin account');
         const newStatus = !payload.is_active;
-        await supabase.from('profiles').update({ is_active: newStatus }).eq('id', payload.user_id);
-        return res.json({ success: true, message: `User ${newStatus ? 'unbanned' : 'banned'}` });
+        const { error } = await supabase.from('profiles').update({ is_active: newStatus }).eq('id', payload.user_id);
+        if (error) throw new Error(error.message);
+        return res.json({ success: true, message: newStatus ? 'User unbanned' : 'User banned' });
       }
 
       case 'manual_credit': {
@@ -113,8 +116,27 @@ export default async function handler(req, res) {
         return res.json({ success: true, message: 'Miner created' });
       }
 
+      case 'update_miner': {
+        const price = Number(payload.price);
+        const dailyRevenue = Number(payload.daily_revenue);
+        const durationDays = Number(payload.duration_days);
+        const purchaseLimit = Number(payload.purchase_limit);
+        if (!payload.id || !payload.name?.trim()) throw new Error('Package name is required');
+        if (![price, dailyRevenue, durationDays, purchaseLimit].every(Number.isFinite) || price < 0 || dailyRevenue < 0 || durationDays <= 0 || purchaseLimit <= 0) {
+          throw new Error('Enter valid package values');
+        }
+        const { error } = await supabase.from('miners').update({
+          name: payload.name.trim(), price, daily_revenue: dailyRevenue,
+          duration_days: durationDays, purchase_limit: purchaseLimit,
+          image_url: payload.image_url || ''
+        }).eq('id', payload.id);
+        if (error) throw new Error(error.message);
+        return res.json({ success: true, message: 'Package updated successfully' });
+      }
+
       case 'delete_miner': {
-        await supabase.from('miners').update({ is_active: false }).eq('id', payload.id);
+        const { error } = await supabase.from('miners').update({ is_active: false }).eq('id', payload.id);
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Miner deactivated' });
       }
 
