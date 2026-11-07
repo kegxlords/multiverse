@@ -45,22 +45,26 @@ export default async function handler(req, res) {
       }
 
       case 'approve_deposit': {
-        await supabase.rpc('approve_transaction', { p_tx_id: payload.id, p_type: 'deposit' });
+        const { error } = await supabase.rpc('approve_transaction', { p_tx_id: payload.id, p_type: 'deposit' });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Deposit approved and wallet credited' });
       }
 
       case 'reject_deposit': {
-        await supabase.from('transactions').update({ status: 'rejected' }).eq('id', payload.id);
+        const { error } = await supabase.rpc('reject_transaction', { p_tx_id: payload.id, p_type: 'deposit' });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Deposit rejected' });
       }
 
       case 'approve_withdrawal': {
-        await supabase.from('transactions').update({ status: 'completed' }).eq('id', payload.id);
+        const { error } = await supabase.rpc('approve_transaction', { p_tx_id: payload.id, p_type: 'withdrawal' });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Withdrawal marked as paid' });
       }
 
       case 'reject_withdrawal': {
-        await supabase.rpc('reject_transaction', { p_tx_id: payload.id, p_type: 'withdrawal' });
+        const { error } = await supabase.rpc('reject_transaction', { p_tx_id: payload.id, p_type: 'withdrawal' });
+        if (error) throw new Error(error.message);
         return res.json({ success: true, message: 'Withdrawal rejected and balance refunded' });
       }
 

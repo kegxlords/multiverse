@@ -30,7 +30,14 @@ export default async function handler(req, res) {
     }
 
     if (action === 'update_settings') {
+      const percentageKeys = new Set(['referral_level_1_percent', 'referral_level_2_percent', 'referral_level_3_percent', 'withdrawal_fee_percent']);
       for (const [key, value] of Object.entries(payload)) {
+        if (percentageKeys.has(key)) {
+          const percentage = Number(value);
+          if (!Number.isFinite(percentage) || percentage < 0 || percentage > 100) {
+            throw new Error(`${key} must be between 0 and 100`);
+          }
+        }
         const { error } = await supabase.from('settings').upsert({ key, value: String(value) });
         if (error) throw new Error(error.message);
       }
