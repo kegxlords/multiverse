@@ -12,6 +12,10 @@
     .level-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; }
     .level-tab { flex: 1; padding: 12px; text-align: center; border-radius: 10px; font-family: 'Orbitron'; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.3s; }
     .level-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
+    .team-stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; }
+    .team-stat-card { text-align: center; padding: 20px 10px; }
+    .team-stat-card .val { font-family: 'Orbitron'; font-size: 22px; font-weight: 700; margin-bottom: 5px; }
+    .team-stat-card .lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
   </style>
 </head>
 <body>
@@ -38,6 +42,23 @@
       </div>
     </div>
 
+    <!-- Active/Inactive Totals -->
+    <div class="team-stats-grid">
+      <div class="glass glass-card team-stat-card">
+        <div class="val text-success" id="statActiveTotal">0</div>
+        <div class="lbl">Total Active</div>
+      </div>
+      <div class="glass glass-card team-stat-card">
+        <div class="val text-danger" id="statInactiveTotal">0</div>
+        <div class="lbl">Total Inactive</div>
+      </div>
+      <div class="glass glass-card team-stat-card">
+        <div class="val text-accent" id="statGrandTotal">0</div>
+        <div class="lbl">Total Team</div>
+      </div>
+    </div>
+
+    <!-- Level Tabs -->
     <div class="level-tabs">
       <div class="level-tab active" onclick="loadLevel(1)">Level 1</div>
       <div class="level-tab" onclick="loadLevel(2)">Level 2</div>
@@ -111,8 +132,27 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) return;
+
+      // Referral link
       const { data: profile } = await window.supabaseClient.from('profiles').select('referral_code').eq('id', session.user.id).single();
       document.getElementById('refLink').value = `${window.location.origin}/register.html?ref=${profile?.referral_code || '---'}`;
+
+      // Calculate Active/Inactive totals across ALL levels
+      const [l1, l2, l3] = await Promise.all([
+        window.supabaseClient.from('profiles').select('has_deposited').eq('referred_by', session.user.id),
+        window.supabaseClient.from('profiles').select('has_deposited').eq('upline_level_2', session.user.id),
+        window.supabaseClient.from('profiles').select('has_deposited').eq('upline_level_3', session.user.id)
+      ]);
+
+      const allMembers = [...(l1.data || []), ...(l2.data || []), ...(l3.data || [])];
+      const activeCount = allMembers.filter(m => m.has_deposited).length;
+      const inactiveCount = allMembers.length - activeCount;
+
+      document.getElementById('statActiveTotal').textContent = activeCount;
+      document.getElementById('statInactiveTotal').textContent = inactiveCount;
+      document.getElementById('statGrandTotal').textContent = allMembers.length;
+
       loadLevel(1);
     });
   </script>
