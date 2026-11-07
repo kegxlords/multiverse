@@ -8,6 +8,11 @@
   <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .level-tabs { display: flex; gap: 10px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 15px; }
+    .level-tab { flex: 1; padding: 12px; text-align: center; border-radius: 10px; font-family: 'Orbitron'; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.3s; }
+    .level-tab.active { background: var(--primary); color: white; box-shadow: 0 4px 15px var(--primary-glow); }
+  </style>
 </head>
 <body>
   <div class="universe-bg"></div>
@@ -18,16 +23,13 @@
 
   <header class="app-header glass">
     <div class="logo"><div class="logo-icon">M</div> MULTIVERSE</div>
-    <div class="header-actions">
-      <a href="dashboard.html" class="icon-btn">‹</a>
-    </div>
+    <div class="header-actions"><a href="dashboard.html" class="icon-btn">‹</a></div>
   </header>
 
   <main class="main-content">
     <h1 class="page-title">My Team</h1>
-    <p class="page-subtitle">Build your network and earn 3-level commissions.</p>
+    <p class="page-subtitle">Track your 3-level network and their deposits.</p>
 
-    <!-- Referral Link -->
     <div class="referral-card glass">
       <div class="referral-label">Your Referral Link</div>
       <div class="referral-link-box">
@@ -36,34 +38,12 @@
       </div>
     </div>
 
-    <!-- Team Stats -->
-    <div class="team-stats-grid">
-      <div class="glass glass-card team-stat-card">
-        <div class="val text-primary" id="statTotal">0</div>
-        <div class="lbl">Total Referrals</div>
-      </div>
-      <div class="glass glass-card team-stat-card">
-        <div class="val text-success" id="statActive">0</div>
-        <div class="lbl">Active</div>
-      </div>
-      <div class="glass glass-card team-stat-card">
-        <div class="val text-danger" id="statInactive">0</div>
-        <div class="lbl">Inactive</div>
-      </div>
+    <div class="level-tabs">
+      <div class="level-tab active" onclick="loadLevel(1)">Level 1</div>
+      <div class="level-tab" onclick="loadLevel(2)">Level 2</div>
+      <div class="level-tab" onclick="loadLevel(3)">Level 3</div>
     </div>
 
-    <!-- Commission Structure -->
-    <div class="glass glass-card" style="margin-bottom: 25px;">
-      <h3 style="font-family: 'Orbitron'; font-size: 15px; margin-bottom: 15px;">Commission Structure</h3>
-      <div style="display: flex; justify-content: space-around; text-align: center;">
-        <div><div style="font-family: 'Orbitron'; font-size: 20px; color: var(--accent);">10%</div><div style="font-size: 12px; color: var(--text-muted);">Level 1</div></div>
-        <div><div style="font-family: 'Orbitron'; font-size: 20px; color: var(--accent);">2%</div><div style="font-size: 12px; color: var(--text-muted);">Level 2</div></div>
-        <div><div style="font-family: 'Orbitron'; font-size: 20px; color: var(--accent);">1%</div><div style="font-size: 12px; color: var(--text-muted);">Level 3</div></div>
-      </div>
-    </div>
-
-    <!-- Member List -->
-    <h3 style="font-family: 'Orbitron'; font-size: 16px; margin-bottom: 15px;">Level 1 Members</h3>
     <div id="memberList" class="member-list">
       <div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">Loading team...</div>
     </div>
@@ -83,66 +63,57 @@
   <script>
     function copyRef() {
       const input = document.getElementById('refLink');
-      input.select();
-      navigator.clipboard.writeText(input.value).then(() => {
-        const btn = event.target;
-        btn.textContent = 'COPIED!';
-        setTimeout(() => btn.textContent = 'COPY', 2000);
+      navigator.clipboard.writeText(input.value).then(() => showToast('Link copied!', 'success'));
+    }
+
+    async function loadLevel(level) {
+      document.querySelectorAll('.level-tab').forEach((t, i) => t.classList.toggle('active', i + 1 === level));
+      const list = document.getElementById('memberList');
+      list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px;">Loading...</div>';
+
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      let column = level === 1 ? 'referred_by' : level === 2 ? 'upline_level_2' : 'upline_level_3';
+      
+      const { data: members } = await window.supabaseClient
+        .from('profiles')
+        .select('id, full_name, email, created_at, has_deposited, total_deposited')
+        .eq(column, session.user.id)
+        .order('created_at', { ascending: false });
+
+      if (!members || members.length === 0) {
+        list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">No members at this level yet.</div>';
+        return;
+      }
+
+      list.innerHTML = '';
+      members.forEach(m => {
+        const isActive = m.has_deposited;
+        const initial = (m.full_name || m.email || 'U')[0].toUpperCase();
+        const statusClass = isActive ? 'tag-active' : 'tag-inactive';
+        const statusText = isActive ? 'Active' : 'Inactive';
+        const depositAmount = Number(m.total_deposited || 0).toLocaleString();
+
+        list.innerHTML += `
+          <div class="member-item glass">
+            <div class="member-avatar">${initial}</div>
+            <div class="member-info">
+              <div class="member-name">${m.full_name || 'Anonymous'}</div>
+              <div class="member-date">Joined ${new Date(m.created_at).toLocaleDateString()} • Deposited: ₦${depositAmount}</div>
+            </div>
+            <div class="member-tags">
+              <span class="tag ${statusClass}">${statusText}</span>
+              <span class="tag tag-level">Lvl ${level}</span>
+            </div>
+          </div>
+        `;
       });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
-      if (!session) return;
-
-      // 1. Get Referral Link
       const { data: profile } = await window.supabaseClient.from('profiles').select('referral_code').eq('id', session.user.id).single();
-      const refCode = profile?.referral_code || '---';
-      document.getElementById('refLink').value = `${window.location.origin}/register.html?ref=${refCode}`;
-
-      // 2. Get Level 1 Members
-      const { data: members } = await window.supabaseClient
-        .from('profiles')
-        .select('id, full_name, email, created_at, has_deposited')
-        .eq('referred_by', session.user.id)
-        .order('created_at', { ascending: false });
-
-      const list = document.getElementById('memberList');
-      let activeCount = 0;
-      let inactiveCount = 0;
-
-      if (members && members.length > 0) {
-        list.innerHTML = '';
-        members.forEach(m => {
-          const isActive = m.has_deposited;
-          if (isActive) activeCount++; else inactiveCount++;
-
-          const initial = (m.full_name || m.email || 'U')[0].toUpperCase();
-          const statusClass = isActive ? 'tag-active' : 'tag-inactive';
-          const statusText = isActive ? 'Active' : 'Inactive';
-
-          list.innerHTML += `
-            <div class="member-item glass">
-              <div class="member-avatar">${initial}</div>
-              <div class="member-info">
-                <div class="member-name">${m.full_name || 'Anonymous User'}</div>
-                <div class="member-date">Joined ${new Date(m.created_at).toLocaleDateString()}</div>
-              </div>
-              <div class="member-tags">
-                <span class="tag ${statusClass}">${statusText}</span>
-                <span class="tag tag-level">Lvl 1</span>
-              </div>
-            </div>
-          `;
-        });
-      } else {
-        list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">No referrals yet. Share your link!</div>';
-      }
-
-      // 3. Update Stats
-      document.getElementById('statTotal').textContent = members?.length || 0;
-      document.getElementById('statActive').textContent = activeCount;
-      document.getElementById('statInactive').textContent = inactiveCount;
+      document.getElementById('refLink').value = `${window.location.origin}/register.html?ref=${profile?.referral_code || '---'}`;
+      loadLevel(1);
     });
   </script>
 </body>
