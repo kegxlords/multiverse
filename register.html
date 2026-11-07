@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MultiVerse - Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="universe-bg"></div>
+
+  <div id="universeLoader" class="loader-overlay">
+    <img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" />
+    <div class="loader-text">ENTERING MULTIVERSE</div>
+  </div>
+
+  <div class="auth-wrapper">
+    <div class="auth-card glass">
+      <div class="auth-content">
+        <div class="auth-logo">MULTIVERSE</div>
+        <p class="auth-subtitle">Create your account and start mining</p>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form id="registerForm">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="fullName" class="form-input" placeholder="John Doe" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="email" class="form-input" placeholder="explorer@multiverse.com" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="phone" class="form-input" placeholder="+234..." required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Min. 6 characters" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Referral Code <span style="font-weight: 400; opacity: 0.7;">(Optional)</span></label>
+            <input type="text" id="refCode" class="form-input" placeholder="Enter code" style="text-transform: uppercase;" />
+          </div>
+          
+          <button type="submit" id="registerBtn" class="btn-primary">CREATE ACCOUNT</button>
+        </form>
+
+        <div class="auth-links">
+          Already have an account? <a href="index.html">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/api-client.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    // Auto-fill referral code from URL
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('ref');
+      if (ref) document.getElementById('refCode').value = ref.toUpperCase();
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const password = document.getElementById('password').value;
+      const refCode = document.getElementById('refCode').value.trim().toUpperCase();
+      
+      const btn = document.getElementById('registerBtn');
+      const alertBox = document.getElementById('alertBox');
+
+      alertBox.className = 'alert';
+      btn.disabled = true;
+      btn.innerText = 'CREATING ACCOUNT...';
+
+      const { data, error } = await window.supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName, phone: phone, referral_code: refCode || null }
+        }
+      });
+
+      if (error) {
+        alertBox.textContent = error.message;
+        alertBox.className = 'alert alert-error show';
+        btn.disabled = false;
+        btn.innerText = 'CREATE ACCOUNT';
+      } else {
+        alertBox.textContent = '✅ Account created! Please check your email to verify, then login.';
+        alertBox.className = 'alert alert-success show';
+        btn.innerText = 'ACCOUNT CREATED';
+        document.getElementById('registerForm').reset();
+      }
+    });
+  </script>
+</body>
+</html>
