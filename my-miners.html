@@ -43,41 +43,57 @@
   <script src="assets/js/auth-guard.js"></script>
   <script src="assets/js/app.js"></script>
   <script>
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const countdownText = createdAt => {
+      const next = new Date(createdAt).getTime() + 86400000;
+      const remaining = next - Date.now();
+      if (remaining <= 0) return 'Income due — waiting for payout cron';
+      const hours = Math.floor(remaining / 3600000);
+      const minutes = Math.floor((remaining % 3600000) / 60000);
+      const seconds = Math.floor((remaining % 60000) / 1000);
+      return `Next income in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    };
+    function refreshCountdowns() {
+      document.querySelectorAll('[data-payout-at]').forEach(el => {
+        el.textContent = countdownText(el.dataset.payoutAt);
+        if (Date.now() >= new Date(el.dataset.payoutAt).getTime()) el.classList.add('text-warning');
+      });
+    }
     document.addEventListener('DOMContentLoaded', async () => {
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       const list = document.getElementById('myMinersList');
-
-      const { data: miners } = await window.supabaseClient.from('user_miners').select('*, miners(name, daily_revenue, duration_days, image_url)').eq('user_id', session.user.id).order('created_at', { ascending: false });
-
+      if (!session) return;
+      const { data: miners, error } = await window.supabaseClient.from('user_miners')
+        .select('*, miners(name, daily_revenue, duration_days, image_url)')
+        .eq('user_id', session.user.id).order('created_at', { ascending: false });
+      if (error) {
+        list.innerHTML = '<div class="glass glass-card" style="text-align:center;color:var(--danger);">Unable to load your miners.</div>';
+        return;
+      }
       if (!miners || miners.length === 0) {
         list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">You have no miners yet. <a href="rent-miners.html" style="color: var(--accent);">Rent one!</a></div>';
         return;
       }
-
-      list.innerHTML = '';
-      miners.forEach(m => {
-        const progress = Math.min(100, Math.round((m.days_collected / m.miners.duration_days) * 100));
-        const isCompleted = m.status === 'completed';
-        const statusClass = isCompleted ? 'status-completed' : 'status-active';
-        const statusText = isCompleted ? 'Completed' : 'Active';
-
-        list.innerHTML += `
-          <div class="glass glass-card miner-card">
-            <div class="miner-img-box">
-              <img src="${m.miners.image_url || 'https://cdn-icons-png.flaticon.com/512/2721/2721698.png'}" alt="${m.miners.name}">
-            </div>
-            <div class="miner-info">
-              <div class="miner-name">${m.miners.name}</div>
-              <div class="miner-specs">
-                <span>Yield: <b>₦${Number(m.miners.daily_revenue).toLocaleString()}</b></span>
-                <span>Days: <b>${m.days_collected} / ${m.miners.duration_days}</b></span>
-              </div>
-              <div class="progress-container"><div class="progress-bar" style="width: ${progress}%"></div></div>
-              <span class="status-badge ${statusClass}">${statusText} • ${progress}%</span>
-            </div>
+      list.innerHTML = miners.map(m => {
+        const miner = m.miners;
+        const duration = Number(miner?.duration_days || 1);
+        const days = Number(m.days_collected || 0);
+        const progress = Math.min(100, Math.round((days / duration) * 100));
+        const completed = m.status === 'completed';
+        const nextPayout = new Date(m.created_at).getTime() + (days + 1) * 86400000;
+        return `<div class="glass glass-card miner-card">
+          <div class="miner-img-box"><img src="${escapeHtml(miner?.image_url || 'https://cdn-icons-png.flaticon.com/512/2721/2721698.png')}" alt="${escapeHtml(miner?.name || 'Miner')}"></div>
+          <div class="miner-info">
+            <div class="miner-name">${escapeHtml(miner?.name || 'Miner')}</div>
+            <div class="miner-specs"><span>Yield: <b>₦${Number(miner?.daily_revenue || 0).toLocaleString()}</b></span><span>Days: <b>${days} / ${duration}</b></span></div>
+            <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
+            <span class="status-badge ${completed ? 'status-completed' : 'status-active'}">${completed ? 'Completed' : 'Active'} • ${progress}%</span>
+            ${completed ? '<div class="text-muted" style="margin-top:8px;font-size:12px;">All income cycles credited</div>' : `<div class="payout-countdown text-accent" data-payout-at="${new Date(nextPayout).toISOString()}" style="margin-top:8px;font-size:12px;font-weight:700;">${countdownText(m.created_at)}</div>`}
           </div>
-        `;
-      });
+        </div>`;
+      }).join('');
+      refreshCountdowns();
+      setInterval(refreshCountdowns, 1000);
     });
   </script>
 </body>
