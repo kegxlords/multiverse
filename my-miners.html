@@ -44,18 +44,18 @@
   <script src="assets/js/app.js"></script>
   <script>
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const countdownText = createdAt => {
-      const next = new Date(createdAt).getTime() + 86400000;
-      const remaining = next - Date.now();
+    const remainingCountdown = target => {
+      const remaining = new Date(target).getTime() - Date.now();
       if (remaining <= 0) return 'Income due — waiting for payout cron';
       const hours = Math.floor(remaining / 3600000);
       const minutes = Math.floor((remaining % 3600000) / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
       return `Next income in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
+    const countdownText = createdAt => remainingCountdown(new Date(createdAt).getTime() + 86400000);
     function refreshCountdowns() {
       document.querySelectorAll('[data-payout-at]').forEach(el => {
-        el.textContent = countdownText(el.dataset.payoutAt);
+        el.textContent = remainingCountdown(el.dataset.payoutAt);
         if (Date.now() >= new Date(el.dataset.payoutAt).getTime()) el.classList.add('text-warning');
       });
     }
