@@ -45,7 +45,7 @@
     <button onclick="showTab('deposits', this)">Deposits</button>
     <button onclick="showTab('withdrawals', this)">Withdrawals</button>
     <button onclick="showTab('users', this)">Users</button>
-    <button onclick="showTab('gift-codes', this)">Gift Codes</button>
+    <button onclick="showTab('daily-checkin', this)">Daily Check-in</button>
     <button onclick="showTab('miners', this)">Miners</button>
     <button onclick="showTab('settings', this)">Settings</button>
   </div>
@@ -108,17 +108,12 @@
         </form>
       </div>
     </div>
-    <!-- GIFT CODES -->
-    <section id="gift-codes" class="tab-content">
-      <h2 class="page-title">Gift Codes</h2>
-      <div class="glass glass-card" style="margin-bottom:20px;">
-        <form id="giftForm" style="display:flex; gap:10px;">
-          <input type="text" id="newCode" class="form-input" placeholder="CODE" required style="text-transform:uppercase;">
-          <input type="number" id="newAmount" class="form-input" placeholder="Amount" required>
-          <button type="submit" class="btn-primary" style="width:auto;">Create</button>
-        </form>
+    <!-- DAILY CHECK-IN -->
+    <section id="daily-checkin" class="tab-content">
+      <h2 class="page-title">Daily Check-in</h2>
+      <div class="glass glass-card">
+        <p class="text-muted">Users can claim one random ₦50–₦100 reward every 24 hours. Claims are protected by the database function and recorded as daily_checkin transactions.</p>
       </div>
-      <div id="giftList"></div>
     </section>
 
     <!-- MINERS -->
@@ -270,12 +265,6 @@
             </div>
             <div class="user-actions"><button class="btn-sm btn-action" onclick="openManageModal('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}', '${u.email || ''}')">Manage</button><button class="btn-sm ${u.is_active === false ? 'btn-approve' : 'btn-reject'}" onclick="toggleBan('${u.id}', ${u.is_active !== false}, '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">${u.is_active === false ? 'Unban' : 'Ban'}</button><button class="btn-sm btn-action" onclick="impersonateUser('${u.id}', '${String(u.full_name || u.email || 'user').replace(/'/g, '&#39;')}')">Login as user</button></div>
           </div>`).join('') || '<p class="text-muted">No users found.</p>';
-      } else if (tab === 'gift-codes') {
-        const { data } = await window.supabaseClient.from('gift_codes').select('*').order('created_at', { ascending: false });
-        document.getElementById('giftList').innerHTML = data?.map(g => `
-          <div class="glass glass-card" style="margin-bottom:10px; display:flex; justify-content:space-between;">
-            <div><div style="font-family:'Orbitron'; font-weight:700;">${g.code}</div><div style="font-size:12px; color:var(--text-muted);">₦${Number(g.amount).toLocaleString()} • ${g.is_used ? 'Used' : 'Active'}</div></div>
-          </div>`).join('') || '<p class="text-muted">No gift codes.</p>';
       } else if (tab === 'miners') {
         const { data } = await window.supabaseClient.from('miners').select('*').order('price', { ascending: true });
         (data || []).forEach(m => { packageCache[m.id] = m; });
@@ -400,13 +389,6 @@
       localStorage.setItem(window.MultiVerse.IMPERSONATION_KEY, JSON.stringify({ id: result.user.id, email: result.user.email, name: result.user.full_name }));
       window.location.href = result.actionLink;
     }
-
-    document.getElementById('giftForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const res = await callAdmin('create_gift_code', { code: document.getElementById('newCode').value, amount: document.getElementById('newAmount').value });
-      alert(res.message || res.error);
-      if (res.success) { e.target.reset(); loadTabData('gift-codes'); }
-    });
 
     document.getElementById('addMinerForm').addEventListener('submit', async e => {
       e.preventDefault();
