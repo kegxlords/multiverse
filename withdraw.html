@@ -32,6 +32,7 @@
     </div>
 
     <div id="alertBox" class="alert"></div>
+    <div id="packageRequirement" class="alert alert-error" style="display:none; margin-bottom:15px;">You need an active package before you can withdraw. <a href="rent-miners.html" style="color:var(--accent);">View packages</a></div>
 
     <div class="glass glass-card">
       <form id="withdrawForm">
@@ -79,6 +80,7 @@
     let feePercent = 8;
     let userBalance = 0;
     let minWithdrawal = 1000;
+    let hasActivePackage = false;
 
     function formatTime(value, fallback) {
       const text = String(value || fallback || '').trim();
@@ -112,6 +114,20 @@
       // Load balance
       const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
       userBalance = Number(wallet?.balance || 0);
+
+      // Withdrawals require at least one active package. This check is repeated by the API.
+      const { count: activePackageCount, error: packageError } = await window.supabaseClient
+        .from('user_miners').select('id', { count: 'exact', head: true })
+        .eq('user_id', session.user.id).eq('status', 'active');
+      hasActivePackage = !packageError && Number(activePackageCount || 0) > 0;
+      if (!hasActivePackage) {
+        const notice = document.getElementById('packageRequirement');
+        notice.innerHTML = packageError
+          ? 'Unable to verify your active package. Please refresh and try again.'
+          : 'You need an active package before you can withdraw. <a href="rent-miners.html" style="color:var(--accent);">View packages</a>';
+        notice.style.display = 'block';
+        document.querySelectorAll('#withdrawForm input, #withdrawForm button').forEach(control => { control.disabled = true; });
+      }
     });
 
     function calculateSummary() {
@@ -134,6 +150,11 @@
       const alertBox = document.getElementById('alertBox');
 
       // Validations
+      if (!hasActivePackage) {
+        alertBox.textContent = 'You need an active package before you can withdraw';
+        alertBox.className = 'alert alert-error show';
+        return;
+      }
       if (amount < minWithdrawal) {
         alertBox.textContent = `Minimum withdrawal is ₦${minWithdrawal.toLocaleString()}`;
         alertBox.className = 'alert alert-error show';
