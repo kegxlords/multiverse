@@ -61,7 +61,7 @@
 
       list.innerHTML = '';
       transactions.forEach(tx => {
-        const isPositive = tx.type === 'daily_income' || tx.type === 'referral_bonus' || tx.type === 'gift_code';
+        const isPositive = tx.type === 'daily_income' || tx.type === 'daily_checkin' || tx.type === 'referral_bonus' || tx.type === 'gift_code';
         const amountClass = isPositive ? 'amount-positive' : 'amount-negative';
         const sign = isPositive ? '+' : '-';
         const statusClass = `status-${tx.status}`;

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MultiVerse - Daily Check-in</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <style>
+    .checkin-card{text-align:center}.checkin-icon{width:88px;height:88px;display:grid;place-items:center;margin:0 auto 18px;border-radius:28px;background:linear-gradient(135deg,rgba(6,182,212,.22),rgba(139,92,246,.28));border:1px solid var(--glass-border);font-size:42px;box-shadow:0 0 35px var(--primary-glow)}.reward-range{margin:18px 0;color:var(--accent);font:700 26px Orbitron}.checkin-status{min-height:24px;margin:16px 0;color:var(--text-muted);font-size:14px}.checkin-card button:disabled{opacity:.65;cursor:not-allowed}
+  </style>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  <div id="universeLoader" class="loader-overlay"><img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" /><div class="loader-text">ENTERING MULTIVERSE</div></div>
+  <header class="app-header glass"><a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a><div class="logo" style="font-size:18px;">DAILY CHECK-IN</div><a href="profile.html" class="icon-btn" aria-label="Profile">◯</a></header>
+  <main class="main-content">
+    <h1 class="page-title">Daily Check-in</h1>
+    <p class="page-subtitle">Return every 24 hours to claim a random wallet reward.</p>
+    <div id="alertBox" class="alert"></div>
+    <div class="glass glass-card checkin-card">
+      <div class="checkin-icon">✓</div>
+      <h2>Claim your daily reward</h2>
+      <div class="reward-range">₦50 – ₦100</div>
+      <p class="text-muted">One secure reward per 24-hour period. The exact amount is generated when you claim.</p>
+      <div id="checkinStatus" class="checkin-status">Checking availability...</div>
+      <button id="checkinBtn" type="button" class="btn-primary">CHECK IN NOW</button>
+    </div>
+  </main>
+  <nav class="bottom-nav glass">
+    <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></a>
+    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Catalog</span></a>
+    <a href="wallet.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H19a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5z"/><path d="M16 13h5M17 13a1 1 0 1 0 0 2 1 1 0 0 0-1-2"/></svg><span>Wallet</span></a>
+    <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20a6 6 0 0 1 12 0M15 20a4.5 4.5 0 0 1 6 0"/></svg><span>Team</span></a>
+    <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></a>
+  </nav>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="assets/js/api-client.js"></script><script src="assets/js/auth-guard.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    const statusEl = document.getElementById('checkinStatus');
+    const button = document.getElementById('checkinBtn');
+    const alertBox = document.getElementById('alertBox');
+    let nextCheckin = null;
+    const remaining = () => {
+      if (!nextCheckin) return '';
+      const ms = new Date(nextCheckin).getTime() - Date.now();
+      if (ms <= 0) return '';
+      const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000), s = Math.floor((ms % 60000) / 1000);
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    };
+    function updateCooldown() {
+      const timer = remaining();
+      if (timer) { statusEl.textContent = `Next check-in available in ${timer}`; button.disabled = true; button.textContent = 'ALREADY CLAIMED'; }
+      else { statusEl.textContent = 'Your daily reward is ready.'; button.disabled = false; button.textContent = 'CHECK IN NOW'; }
+    }
+    async function loadLastCheckin() {
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      if (!session) return;
+      const { data } = await window.supabaseClient.from('transactions').select('created_at').eq('user_id', session.user.id).eq('type', 'daily_checkin').eq('status', 'completed').order('created_at', { ascending: false }).limit(1).maybeSingle();
+      nextCheckin = data?.created_at ? new Date(data.created_at).getTime() + 86400000 : null;
+      updateCooldown();
+    }
+    button.addEventListener('click', async () => {
+      button.disabled = true; button.textContent = 'CLAIMING...'; alertBox.className = 'alert';
+      const { data: { session } } = await window.supabaseClient.auth.getSession();
+      const res = await fetch('/api/daily-checkin', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` } });
+      const result = await res.json();
+      if (result.success) { alertBox.textContent = `✅ ${result.message}`; alertBox.className = 'alert alert-success show'; nextCheckin = result.next_checkin; }
+      else { alertBox.textContent = result.error || 'Unable to claim daily reward.'; alertBox.className = 'alert alert-error show'; nextCheckin = result.next_checkin || nextCheckin; }
+      updateCooldown();
+    });
+    document.addEventListener('DOMContentLoaded', () => { loadLastCheckin(); setInterval(updateCooldown, 1000); });
+  </script>
+</body>
+</html>
