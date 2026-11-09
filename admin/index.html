@@ -213,17 +213,51 @@
           </div>`).join('') || '<p class="text-muted">No pending deposits.</p>';
       } else if (tab === 'withdrawals') {
         const { data } = await window.supabaseClient.from('transactions').select('*, profiles(full_name, email)').eq('type', 'withdrawal').eq('status', 'pending').order('created_at', { ascending: false });
-        document.getElementById('withdrawalList').innerHTML = data?.map(d => `
+        const { data: feeSetting, error: feeSettingError } = await window.supabaseClient
+          .from('settings').select('value').eq('key', 'withdrawal_fee_percent').maybeSingle();
+        const configuredFeePercent = feeSettingError
+          ? NaN
+          : (feeSetting?.value == null || feeSetting.value === '' ? 0 : Number(feeSetting.value));
+        const configuredRateIsValid = Number.isFinite(configuredFeePercent)
+          && configuredFeePercent >= 0 && configuredFeePercent <= 100;
+        const formatNaira = value => '₦' + Number(value || 0).toLocaleString('en-NG', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
+        document.getElementById('withdrawalList').innerHTML = data?.map(d => {
+          const amount = Number(d.amount || 0);
+          const storedFeeValue = d.fee_amount ?? d.withdrawal_fee ?? d.processing_fee ?? d.fee;
+          const storedFeeIsValid = storedFeeValue !== undefined && storedFeeValue !== null
+            && storedFeeValue !== '' && Number.isFinite(Number(storedFeeValue));
+          const storedRateValue = d.fee_percent ?? d.withdrawal_fee_percent;
+          const feePercent = storedRateValue === undefined || storedRateValue === null || storedRateValue === ''
+            ? (configuredRateIsValid ? configuredFeePercent : null)
+            : Number(storedRateValue);
+          const rateIsValid = Number.isFinite(feePercent) && feePercent >= 0 && feePercent <= 100;
+          const fee = storedFeeIsValid
+            ? Number(storedFeeValue)
+            : (rateIsValid ? amount * feePercent / 100 : null);
+          const netAmount = fee === null ? null : amount - fee;
+          const feeLabel = rateIsValid ? `Processing fee (${feePercent}%)` : 'Processing fee';
+          return `
           <div class="glass glass-card" style="margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-              <div><div style="font-weight:700;">${d.profiles?.full_name}</div><div style="font-size:12px; color:var(--text-muted);">₦${Number(d.amount).toLocaleString()}</div></div>
+              <div>
+                <div style="font-weight:700;">${d.profiles?.full_name || 'Unknown'}</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:4px; line-height:1.7;">
+                  Requested: ${formatNaira(amount)}<br>
+                  ${feeLabel}: ${fee === null ? 'Unavailable' : formatNaira(fee)}<br>
+                  Net payout: ${netAmount === null ? 'Unavailable' : formatNaira(netAmount)}
+                </div>
+              </div>
               <div style="display:flex; gap:5px;">
                 <button class="btn-sm btn-approve" onclick="approveTx('${d.id}', 'withdrawal')">Paid</button>
                 <button class="btn-sm btn-reject" onclick="rejectTx('${d.id}', 'withdrawal')">Reject</button>
               </div>
             </div>
             <div style="font-size:12px; color:var(--text-muted);">Bank: ${d.bank_name} | Acct: ${d.account_number} | Name: ${d.account_name}</div>
-          </div>`).join('') || '<p class="text-muted">No pending withdrawals.</p>';
+          </div>`;
+        }).join('') || '<p class="text-muted">No pending withdrawals.</p>';
       } else if (tab === 'users') {
         const { data } = await window.supabaseClient.from('profiles').select('*, wallets(balance)').order('created_at', { ascending: false });
         const { data: activeMiners } = await window.supabaseClient.from('miners').select('id, name').eq('is_active', true).order('price', { ascending: true });
