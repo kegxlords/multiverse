@@ -41,6 +41,13 @@ export default async function handler(req, res) {
     }
 
     if (action === 'withdraw') {
+      const { count: activePackageCount, error: packageError } = await supabase
+        .from('user_miners')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+      if (packageError) throw new Error('Unable to verify your active package');
+      if (!activePackageCount) throw new Error('You need an active package before you can withdraw');
       const minWithdrawal = Number(getSetting('min_withdrawal') || 0);
       const feePercent = Number(getSetting('withdrawal_fee_percent') || 0);
       if (numericAmount < minWithdrawal) throw new Error(`Minimum withdrawal is ₦${minWithdrawal.toLocaleString()}`);
