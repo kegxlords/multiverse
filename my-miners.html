@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MultiVerse - My Catalog</title>
+  <title>MultiVerse - My Packages</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/theme.css" />
   <link rel="stylesheet" href="assets/css/styles.css" />
@@ -18,13 +18,13 @@
 
   <header class="app-header glass">
     <a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a>
-    <div class="logo" style="font-size: 18px;">MY CATALOGS</div>
+    <div class="logo" style="font-size: 18px;">MY PACKAGES</div>
     <div style="width: 40px;"></div>
   </header>
 
   <main class="main-content">
     <h1 class="page-title">Your Fleet</h1>
-    <p class="page-subtitle">Track your active mining rigs and daily progress.</p>
+    <p class="page-subtitle">Track your active packages and daily progress.</p>
 
     <div id="myMinersList" class="miner-list">
       <div class="glass glass-card" style="text-align:center; padding: 30px;">Loading your fleet...</div>
@@ -33,7 +33,7 @@
 
   <nav class="bottom-nav glass">
     <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
-    <a href="rent-miners.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Miners</span></a>
+    <a href="rent-miners.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Catalog</span></a>
     <a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
     <a href="team.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Team</span></a>
     <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
@@ -67,11 +67,11 @@
         .select('*, miners(name, daily_revenue, duration_days, image_url)')
         .eq('user_id', session.user.id).order('created_at', { ascending: false });
       if (error) {
-        list.innerHTML = '<div class="glass glass-card" style="text-align:center;color:var(--danger);">Unable to load your miners.</div>';
+        list.innerHTML = '<div class="glass glass-card" style="text-align:center;color:var(--danger);">Unable to load your packages.</div>';
         return;
       }
       if (!miners || miners.length === 0) {
-        list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">You have no miners yet. <a href="rent-miners.html" style="color: var(--accent);">Rent one!</a></div>';
+        list.innerHTML = '<div class="glass glass-card" style="text-align:center; padding: 30px; color: var(--text-muted);">You have no packages yet. <a href="rent-miners.html" style="color: var(--accent);">Browse the catalog!</a></div>';
         return;
       }
       list.innerHTML = miners.map(m => {
@@ -82,9 +82,9 @@
         const completed = m.status === 'completed';
         const nextPayout = new Date(m.created_at).getTime() + (days + 1) * 86400000;
         return `<div class="glass glass-card miner-card">
-          <div class="miner-img-box"><img src="${escapeHtml(miner?.image_url || 'https://cdn-icons-png.flaticon.com/512/2721/2721698.png')}" alt="${escapeHtml(miner?.name || 'Miner')}"></div>
+          <div class="miner-img-box"><img src="${escapeHtml(miner?.image_url || 'https://cdn-icons-png.flaticon.com/512/2721/2721698.png')}" alt="${escapeHtml(miner?.name || 'Package')}"></div>
           <div class="miner-info">
-            <div class="miner-name">${escapeHtml(miner?.name || 'Miner')}</div>
+            <div class="miner-name">${escapeHtml(miner?.name || 'Package')}</div>
             <div class="miner-specs"><span>Yield: <b>₦${Number(miner?.daily_revenue || 0).toLocaleString()}</b></span><span>Days: <b>${days} / ${duration}</b></span></div>
             <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
             <span class="status-badge ${completed ? 'status-completed' : 'status-active'}">${completed ? 'Completed' : 'Active'} • ${progress}%</span>
