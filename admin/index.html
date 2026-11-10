@@ -57,6 +57,8 @@
       <div class="admin-grid">
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Users</div><div class="value text-accent" id="statUsers" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Completed Deposits</div><div class="value text-success" id="statDeposits" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Deposited</div><div class="value text-success" id="statTotalDeposits" style="font-family:'Orbitron'; font-size:24px;">₦0</div></div>
+        <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Withdrawn</div><div class="value text-warning" id="statTotalWithdrawals" style="font-family:'Orbitron'; font-size:24px;">₦0</div></div>
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Actions</div><div class="value text-warning" id="statPending" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
       </div>
     </section>
@@ -210,8 +212,11 @@
       if (tab === 'dashboard') {
         const res = await callAdmin('get_stats');
         if (res.success) {
+          const formatNaira = value => '₦' + Number(value || 0).toLocaleString('en-NG', { maximumFractionDigits: 2 });
           document.getElementById('statUsers').textContent = res.data.users;
           document.getElementById('statDeposits').textContent = res.data.deposits;
+          document.getElementById('statTotalDeposits').textContent = formatNaira(res.data.total_deposits);
+          document.getElementById('statTotalWithdrawals').textContent = formatNaira(res.data.total_withdrawals);
           document.getElementById('statPending').textContent = res.data.pending;
         }
       } else if (tab === 'deposits') {
