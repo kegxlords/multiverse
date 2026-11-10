@@ -63,6 +63,10 @@
       const { data: { session } } = await window.supabaseClient.auth.getSession();
       const list = document.getElementById('myMinersList');
       if (!session) return;
+      await fetch('/api/claim-miner-income', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` }
+      }).catch(error => console.warn('Income claim unavailable:', error));
       const { data: miners, error } = await window.supabaseClient.from('user_miners')
         .select('*, miners(name, daily_revenue, duration_days, image_url)')
         .eq('user_id', session.user.id).order('created_at', { ascending: false });
