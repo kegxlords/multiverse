@@ -89,11 +89,38 @@ export default async function handler(req, res) {
         const amount = Number(payload.amount);
         if (!Number.isFinite(amount) || amount === 0) throw new Error('Balance adjustment cannot be zero');
         if (!payload.user_id) throw new Error('User is required');
-        const { error } = await supabase.rpc('manual_credit_user', {
-          p_user_id: payload.user_id,
-          p_amount: amount
-        });
-        if (error) throw new Error(error.message);
+        if (amount > 0) {
+          const { error } = await supabase.rpc('manual_credit_user', {
+            p_user_id: payload.user_id,
+            p_amount: amount
+          });
+          if (error) throw new Error(error.message);
+        } else {
+          const debit = Math.abs(amount);
+          const { data: wallet, error: walletError } = await supabase
+            .from('wallets').select('balance').eq('user_id', payload.user_id).maybeSingle();
+          if (walletError) throw new Error(walletError.message);
+          if (!wallet || Number(wallet.balance || 0) < debit) throw new Error('Insufficient wallet balance');
+          const { data: updatedWallet, error: updateError } = await supabase
+            .from('wallets')
+            .update({ balance: Number(wallet.balance) - debit })
+            .eq('user_id', payload.user_id)
+            .eq('balance', Number(wallet.balance))
+            .select('balance')
+            .maybeSingle();
+          if (updateError) throw new Error(updateError.message);
+          if (!updatedWallet) throw new Error('Balance changed while processing; please try again');
+          const { error: transactionError } = await supabase.from('transactions').insert({
+            user_id: payload.user_id,
+            type: 'manual_credit',
+            amount: debit,
+            description: 'Manual admin debit',
+            status: 'completed',
+            reference: 'ADM-' + crypto.randomUUID(),
+            metadata: { direction: 'debit', admin_id: user.id }
+          });
+          if (transactionError) throw new Error(transactionError.message);
+        }
         return res.json({
           success: true,
           message: amount > 0 ? 'Funds added successfully' : 'Funds deducted successfully'
