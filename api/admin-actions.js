@@ -34,6 +34,17 @@ export default async function handler(req, res) {
         return res.json({ success: true, data: { users: users.count, deposits: deposits.count, total_deposits: totalDeposits, total_withdrawals: totalWithdrawals, pending: withdrawals.count } });
       }
 
+      case 'drop_income': {
+        const { data, error } = await supabase.rpc('credit_due_miner_income');
+        if (error) throw new Error(error.message);
+        const result = data?.[0] || data || {};
+        return res.json({
+          success: true,
+          message: `Income dropped: ${Number(result.amount_paid || 0).toLocaleString()} credited across ${result.cycles_paid || 0} cycle(s)`,
+          data: result
+        });
+      }
+
       case 'update_settings': {
         for (const [key, value] of Object.entries(payload)) {
           await supabase.from('settings').upsert({ key, value: String(value) });
