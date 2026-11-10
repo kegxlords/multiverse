@@ -52,10 +52,10 @@
       const seconds = Math.floor((remaining % 60000) / 1000);
       return `Next income in ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     };
-    const countdownText = createdAt => remainingCountdown(new Date(createdAt).getTime() + 86400000);
+    const countdownText = target => remainingCountdown(target);
     function refreshCountdowns() {
       document.querySelectorAll('[data-payout-at]').forEach(el => {
-        el.textContent = remainingCountdown(el.dataset.payoutAt);
+        el.textContent = `Income timer: ${remainingCountdown(el.dataset.payoutAt)}`;
         if (Date.now() >= new Date(el.dataset.payoutAt).getTime()) el.classList.add('text-warning');
       });
     }
@@ -88,7 +88,7 @@
             <div class="miner-specs"><span>Yield: <b>₦${Number(miner?.daily_revenue || 0).toLocaleString()}</b></span><span>Days: <b>${days} / ${duration}</b></span></div>
             <div class="progress-container"><div class="progress-bar" style="width:${progress}%"></div></div>
             <span class="status-badge ${completed ? 'status-completed' : 'status-active'}">${completed ? 'Completed' : 'Active'} • ${progress}%</span>
-            ${completed ? '<div class="text-muted" style="margin-top:8px;font-size:12px;">All income cycles credited</div>' : `<div class="payout-countdown text-accent" data-payout-at="${new Date(nextPayout).toISOString()}" style="margin-top:8px;font-size:12px;font-weight:700;">${countdownText(m.created_at)}</div>`}
+            ${completed ? '<div class="text-muted" style="margin-top:8px;font-size:12px;">All income cycles credited</div>' : `<div class="payout-countdown text-accent" data-payout-at="${new Date(nextPayout).toISOString()}" style="margin-top:8px;font-size:12px;font-weight:700;">Income timer: ${countdownText(nextPayout)}</div>`}
           </div>
         </div>`;
       }).join('');
