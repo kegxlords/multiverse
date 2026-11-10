@@ -53,9 +53,36 @@ export default async function handler(req, res) {
       if (numericAmount < minWithdrawal) throw new Error(`Minimum withdrawal is ₦${minWithdrawal.toLocaleString()}`);
       if (!/^\d{10}$/.test(String(account_number || ''))) throw new Error('Account number must be 10 digits');
 
+      // Vercel runs serverless functions in UTC. Withdrawal settings are
+      // entered/displayed as Nigerian local time, so compare in Africa/Lagos.
       const now = new Date();
-      const day = now.getDay();
-      const currentTime = now.getHours() * 100 + now.getMinutes();
+      const configuredTimezone = String(process.env.APP_TIMEZONE || 'Africa/Lagos').trim();
+      let localParts;
+      try {
+        localParts = new Intl.DateTimeFormat('en-NG', {
+          timeZone: configuredTimezone,
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        }).formatToParts(now).reduce((parts, part) => {
+          parts[part.type] = part.value;
+          return parts;
+        }, {});
+      } catch {
+        localParts = new Intl.DateTimeFormat('en-NG', {
+          timeZone: 'Africa/Lagos',
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hourCycle: 'h23'
+        }).formatToParts(now).reduce((parts, part) => {
+          parts[part.type] = part.value;
+          return parts;
+        }, {});
+      }
+      const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(localParts.weekday);
+      const currentTime = Number(localParts.hour) * 100 + Number(localParts.minute);
       const startText = getSetting(day >= 1 && day <= 5 ? 'withdrawal_weekday_start' : 'withdrawal_weekend_start') || '00:00';
       const endText = getSetting(day >= 1 && day <= 5 ? 'withdrawal_weekday_end' : 'withdrawal_weekend_end') || '23:59';
       const start = Number(startText.replace(':', ''));
