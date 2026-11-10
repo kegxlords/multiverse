@@ -61,6 +61,10 @@
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Total Withdrawn</div><div class="value text-warning" id="statTotalWithdrawals" style="font-family:'Orbitron'; font-size:24px;">₦0</div></div>
         <div class="glass glass-card"><div class="text-muted" style="font-size:12px;">Pending Actions</div><div class="value text-warning" id="statPending" style="font-family:'Orbitron'; font-size:24px;">0</div></div>
       </div>
+      <div class="glass glass-card" style="margin-top:15px; display:flex; align-items:center; justify-content:space-between; gap:15px; flex-wrap:wrap;">
+        <div><div style="font-weight:700;">Miner income payout</div><div class="text-muted" style="font-size:12px; margin-top:5px;">Credit all income cycles that are currently due. Already processed cycles are skipped.</div></div>
+        <button id="dropIncomeButton" type="button" class="btn-primary" style="background:linear-gradient(135deg,var(--success),#059669);" onclick="dropDueIncome()">DROP DUE INCOME</button>
+      </div>
     </section>
 
     <!-- DEPOSITS -->
@@ -302,6 +306,23 @@
         const { data } = await window.supabaseClient.from('settings').select('*');
         const form = document.getElementById('settingsForm');
         data.forEach(s => { if (form[s.key]) form[s.key].value = s.value; });
+      }
+    }
+
+    async function dropDueIncome() {
+      if (!confirm('Drop all miner income cycles that are currently due? Already processed cycles will be skipped.')) return;
+      const button = document.getElementById('dropIncomeButton');
+      button.disabled = true;
+      button.textContent = 'PROCESSING...';
+      try {
+        const res = await callAdmin('drop_income');
+        alert(res.message || res.error || 'Income payout completed');
+        if (res.success) loadTabData('dashboard');
+      } catch (error) {
+        alert(error.message || 'Unable to drop income');
+      } finally {
+        button.disabled = false;
+        button.textContent = 'DROP DUE INCOME';
       }
     }
 
