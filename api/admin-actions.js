@@ -23,12 +23,15 @@ export default async function handler(req, res) {
     switch (action) {
 
       case 'get_stats': {
-        const [users, deposits, withdrawals] = await Promise.all([
+        const [users, deposits, completedWithdrawals, withdrawals] = await Promise.all([
           supabase.from('profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('transactions').select('amount', { count: 'exact', head: true }).eq('type', 'deposit').eq('status', 'completed'),
+          supabase.from('transactions').select('amount', { count: 'exact' }).eq('type', 'deposit').eq('status', 'completed'),
+          supabase.from('transactions').select('amount').eq('type', 'withdrawal').eq('status', 'completed'),
           supabase.from('transactions').select('*', { count: 'exact', head: true }).in('type', ['deposit', 'withdrawal']).eq('status', 'pending')
         ]);
-        return res.json({ success: true, data: { users: users.count, deposits: deposits.count, pending: withdrawals.count } });
+        const totalDeposits = (deposits.data || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        const totalWithdrawals = (completedWithdrawals.data || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+        return res.json({ success: true, data: { users: users.count, deposits: deposits.count, total_deposits: totalDeposits, total_withdrawals: totalWithdrawals, pending: withdrawals.count } });
       }
 
       case 'update_settings': {
