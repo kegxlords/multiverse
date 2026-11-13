@@ -18,9 +18,9 @@
   <header class="app-header glass"><a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a><div class="logo" style="font-size:18px;">SALARY PLAN</div><a href="profile.html" class="icon-btn" aria-label="Profile" data-icon="user"></a></header>
   <main class="main-content">
     <h1 class="page-title">Referral Salary</h1>
-    <p class="page-subtitle salary-intro">Build an active team, reach a milestone, and claim each salary bonus once.</p>
+    <p class="page-subtitle salary-intro">Build an active team, reach a milestone, and claim each qualified salary bonus on the 30th of the month.</p>
     <img class="salary-art" src="assets/img/salary-plan.jpg" alt="MultiVerse referral monthly salary milestone plan" />
-    <div class="salary-summary"><div><small>Active team members</small><div class="value" id="activeMembers">0</div></div><div style="text-align:right"><small>Next milestone</small><strong id="nextMilestone">7 members</strong></div></div>
+    <div class="salary-summary"><div><small>Active team members</small><div class="value" id="activeMembers">0</div></div><div style="text-align:right"><small>Claim window</small><strong id="claimWindow">Every 30th</strong><br><small id="nextMilestone">Next: 7 members</small></div></div>
     <div id="milestoneList" class="milestone-list"><div class="glass glass-card" style="text-align:center;color:var(--text-muted);">Loading salary milestones...</div></div>
   </main>
   <nav class="bottom-nav glass">
@@ -41,15 +41,19 @@
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Unable to load salary plan');
       const active = Number(data.active_members || 0);
-      const claimed = new Map((data.claims || []).map(claim => [Number(claim.milestone), claim]));
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      const isClaimDay = now.getDate() === 30;
+      const claimed = new Map((data.claims || []).filter(claim => claim.claim_month === currentMonth).map(claim => [Number(claim.milestone), claim]));
       document.getElementById('activeMembers').textContent = active;
       const next = milestones.find(item => !claimed.has(item.members) && active < item.members);
-      document.getElementById('nextMilestone').textContent = next ? `${next.members} members` : 'All reached';
+      document.getElementById('claimWindow').textContent = isClaimDay ? 'Open today' : 'Every 30th';
+      document.getElementById('nextMilestone').textContent = next ? `Next: ${next.members} members` : 'All milestones reached';
       document.getElementById('milestoneList').innerHTML = milestones.map(item => {
         const claim = claimed.get(item.members);
         const eligible = active >= item.members;
-        const status = claim ? 'Claimed' : eligible ? 'Ready to claim' : `${item.members - active} more active member${item.members - active === 1 ? '' : 's'}`;
-        return `<div class="glass glass-card milestone-row ${claim ? 'claimed' : ''}"><div><div class="members">${item.members} Active Members</div><strong>${money(item.amount)}</strong></div><div><button class="claim-btn" data-milestone="${item.members}" ${claim || !eligible ? 'disabled' : ''}>${claim ? 'Claimed' : 'Claim'}</button><div class="claim-status">${esc(status)}</div></div></div>`;
+        const status = claim ? 'Claimed this month' : !isClaimDay ? 'Available on the 30th' : eligible ? 'Ready to claim' : `${item.members - active} more active member${item.members - active === 1 ? '' : 's'}`;
+        return `<div class="glass glass-card milestone-row ${claim ? 'claimed' : ''}"><div><div class="members">${item.members} Active Members</div><strong>${money(item.amount)}</strong></div><div><button class="claim-btn" data-milestone="${item.members}" ${claim || !eligible || !isClaimDay ? 'disabled' : ''}>${claim ? 'Claimed' : 'Claim'}</button><div class="claim-status">${esc(status)}</div></div></div>`;
       }).join('');
       document.querySelectorAll('.claim-btn:not(:disabled)').forEach(button => button.addEventListener('click', () => claimSalary(Number(button.dataset.milestone))));
     }
