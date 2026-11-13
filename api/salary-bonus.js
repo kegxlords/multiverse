@@ -10,7 +10,7 @@ export default async function handler(req, res) {
         supabase.from('profiles').select('id, has_deposited').eq('referred_by', user.id),
         supabase.from('profiles').select('id, has_deposited').eq('upline_level_2', user.id),
         supabase.from('profiles').select('id, has_deposited').eq('upline_level_3', user.id),
-        supabase.from('salary_claims').select('milestone, amount, claimed_at').eq('user_id', user.id)
+        supabase.from('salary_claims').select('milestone, amount, claim_month, claimed_at').eq('user_id', user.id)
       ]);
       const members = new Map();
       for (const row of [...(level1.data || []), ...(level2.data || []), ...(level3.data || [])]) members.set(row.id, row);
