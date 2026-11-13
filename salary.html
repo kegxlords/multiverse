@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MultiVerse — Salary Plan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/theme.css" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .salary-intro{margin-bottom:18px}.salary-art{display:block;width:100%;max-height:430px;object-fit:cover;border-radius:22px;border:1px solid var(--glass-border);box-shadow:0 18px 50px rgba(0,0,0,.28);margin-bottom:18px}.salary-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px;margin-bottom:18px;border-radius:18px;background:linear-gradient(105deg,rgba(6,182,212,.14),rgba(139,92,246,.16));border:1px solid var(--glass-border)}.salary-summary .value{font-family:Orbitron;font-size:25px;color:var(--accent)}.salary-summary small{display:block;color:var(--text-muted);font-size:12px}.milestone-list{display:grid;gap:12px}.milestone-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px;border-radius:17px}.milestone-row .members{color:var(--text-muted);font-size:13px}.milestone-row strong{display:block;font-family:Orbitron;color:var(--accent);font-size:17px;margin-top:3px}.claim-btn{border:0;cursor:pointer;padding:10px 13px;border-radius:11px;color:#fff;font:700 12px Rajdhani;background:linear-gradient(135deg,var(--primary),var(--accent));white-space:nowrap}.claim-btn:disabled{cursor:not-allowed;opacity:.48;background:rgba(148,163,184,.35)}.claim-status{font-size:11px;color:var(--text-muted);text-align:right}.claimed .claim-status{color:var(--success)}
+  </style>
+</head>
+<body>
+  <div class="universe-bg"></div>
+  <div id="universeLoader" class="loader-overlay"><img src="assets/img/logo-loader.svg" alt="Loading" class="loader-svg" /><div class="loader-text">ENTERING MULTIVERSE</div></div>
+  <header class="app-header glass"><a href="dashboard.html" class="icon-btn" style="text-decoration:none;">‹</a><div class="logo" style="font-size:18px;">SALARY PLAN</div><a href="profile.html" class="icon-btn" aria-label="Profile" data-icon="user"></a></header>
+  <main class="main-content">
+    <h1 class="page-title">Referral Salary</h1>
+    <p class="page-subtitle salary-intro">Build an active team, reach a milestone, and claim each salary bonus once.</p>
+    <img class="salary-art" src="assets/img/salary-plan.jpg" alt="MultiVerse referral monthly salary milestone plan" />
+    <div class="salary-summary"><div><small>Active team members</small><div class="value" id="activeMembers">0</div></div><div style="text-align:right"><small>Next milestone</small><strong id="nextMilestone">7 members</strong></div></div>
+    <div id="milestoneList" class="milestone-list"><div class="glass glass-card" style="text-align:center;color:var(--text-muted);">Loading salary milestones...</div></div>
+  </main>
+  <nav class="bottom-nav glass">
+    <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Home</span></a>
+    <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5zM3 12l9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Catalog</span></a>
+    <a href="wallet.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H19a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5.5A2.5 2.5 0 0 1 3 17.5z"/><path d="M16 13h5M17 13a1 1 0 1 0 0 2 1 1 0 0 1-1-2"/></svg><span>Wallet</span></a>
+    <a href="salary.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg><span>Salary</span></a>
+    <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></a>
+  </nav>
+  <script src="assets/js/api-client.js"></script><script src="assets/js/auth-guard.js"></script><script src="assets/js/app.js"></script>
+  <script>
+    const milestones = [{members:7, amount:2000}, {members:10, amount:2800}, {members:15, amount:3700}, {members:20, amount:5000}, {members:30, amount:8000}, {members:50, amount:15000}, {members:100, amount:30000}];
+    const money = value => '₦' + Number(value).toLocaleString();
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    let session;
+    async function loadSalary() {
+      const res = await fetch('/api/salary-bonus', { headers: { Authorization: `Bearer ${session.access_token}` } });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Unable to load salary plan');
+      const active = Number(data.active_members || 0);
+      const claimed = new Map((data.claims || []).map(claim => [Number(claim.milestone), claim]));
+      document.getElementById('activeMembers').textContent = active;
+      const next = milestones.find(item => !claimed.has(item.members) && active < item.members);
+      document.getElementById('nextMilestone').textContent = next ? `${next.members} members` : 'All reached';
+      document.getElementById('milestoneList').innerHTML = milestones.map(item => {
+        const claim = claimed.get(item.members);
+        const eligible = active >= item.members;
+        const status = claim ? 'Claimed' : eligible ? 'Ready to claim' : `${item.members - active} more active member${item.members - active === 1 ? '' : 's'}`;
+        return `<div class="glass glass-card milestone-row ${claim ? 'claimed' : ''}"><div><div class="members">${item.members} Active Members</div><strong>${money(item.amount)}</strong></div><div><button class="claim-btn" data-milestone="${item.members}" ${claim || !eligible ? 'disabled' : ''}>${claim ? 'Claimed' : 'Claim'}</button><div class="claim-status">${esc(status)}</div></div></div>`;
+      }).join('');
+      document.querySelectorAll('.claim-btn:not(:disabled)').forEach(button => button.addEventListener('click', () => claimSalary(Number(button.dataset.milestone))));
+    }
+    async function claimSalary(milestone) {
+      const button = document.querySelector(`[data-milestone="${milestone}"]`); if (button) { button.disabled = true; button.textContent = 'Claiming…'; }
+      try {
+        const res = await fetch('/api/salary-bonus', { method:'POST', headers:{'Content-Type':'application/json', Authorization:`Bearer ${session.access_token}`}, body:JSON.stringify({milestone}) });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.message || data.error || 'Salary claim was not completed');
+        showToast(`${money(data.amount)} salary bonus credited`, 'success');
+        await loadSalary();
+      } catch (error) { if (button) { button.disabled = false; button.textContent = 'Claim'; } showToast(error.message, 'error'); }
+    }
+    document.addEventListener('DOMContentLoaded', async () => {
+      document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = window.MultiVerse.createIcon(el.dataset.icon, 20); });
+      const result = await window.supabaseClient.auth.getSession(); session = result.data.session;
+      if (!session) return;
+      try { await loadSalary(); } catch (error) { document.getElementById('milestoneList').innerHTML = `<div class="glass glass-card" style="text-align:center;color:var(--danger);">${esc(error.message)}</div>`; }
+    });
+  </script>
+</body>
+</html>
