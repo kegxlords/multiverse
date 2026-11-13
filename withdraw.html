@@ -32,7 +32,6 @@
     </div>
 
     <div id="alertBox" class="alert"></div>
-    <div id="packageRequirement" class="alert alert-error" style="display:none; margin-bottom:15px;">You need an active package before you can withdraw. <a href="rent-miners.html" style="color:var(--accent);">View packages</a></div>
 
     <div class="glass glass-card">
       <form id="withdrawForm">
@@ -70,6 +69,7 @@
     <a href="rent-miners.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zm0 9l2.5-1.25L12 8.5l-2.5 1.25L12 11zm0 2.5l-5-2.5-5 2.5L12 22l10-8.5-5-2.5-5 2.5z"/></svg><span>Catalog</span></a>
     <a href="wallet.html" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg><span>Wallet</span></a>
 
+    <a href="salary.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h17"/><path d="m7 15 4-4 3 2 6-7"/></svg><span>Salary</span></a>
     <a href="profile.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>Profile</span></a>
   </nav>
 
@@ -80,7 +80,6 @@
     let feePercent = 8;
     let userBalance = 0;
     let minWithdrawal = 1000;
-    let hasActivePackage = false;
 
     function formatTime(value, fallback) {
       const text = String(value || fallback || '').trim();
@@ -114,20 +113,6 @@
       // Load balance
       const { data: wallet } = await window.supabaseClient.from('wallets').select('balance').eq('user_id', session.user.id).single();
       userBalance = Number(wallet?.balance || 0);
-
-      // Withdrawals require at least one active package. This check is repeated by the API.
-      const { count: activePackageCount, error: packageError } = await window.supabaseClient
-        .from('user_miners').select('id', { count: 'exact', head: true })
-        .eq('user_id', session.user.id).eq('status', 'active');
-      hasActivePackage = !packageError && Number(activePackageCount || 0) > 0;
-      if (!hasActivePackage) {
-        const notice = document.getElementById('packageRequirement');
-        notice.innerHTML = packageError
-          ? 'Unable to verify your active package. Please refresh and try again.'
-          : 'You need an active package before you can withdraw. <a href="rent-miners.html" style="color:var(--accent);">View packages</a>';
-        notice.style.display = 'block';
-        document.querySelectorAll('#withdrawForm input, #withdrawForm button').forEach(control => { control.disabled = true; });
-      }
     });
 
     function calculateSummary() {
@@ -150,11 +135,6 @@
       const alertBox = document.getElementById('alertBox');
 
       // Validations
-      if (!hasActivePackage) {
-        alertBox.textContent = 'You need an active package before you can withdraw';
-        alertBox.className = 'alert alert-error show';
-        return;
-      }
       if (amount < minWithdrawal) {
         alertBox.textContent = `Minimum withdrawal is ₦${minWithdrawal.toLocaleString()}`;
         alertBox.className = 'alert alert-error show';
