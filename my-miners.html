@@ -47,7 +47,11 @@
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const remainingCountdown = target => {
       const remaining = new Date(target).getTime() - Date.now();
-      if (remaining <= 0) return 'Income due — waiting for payout cron';
+      if (remaining <= 0) {
+        const day = new Date().getDay();
+        if (day === 0 || day === 6) return 'Weekend hold — pays next weekday';
+        return 'Income due — waiting for payout';
+      }
       const hours = Math.floor(remaining / 3600000);
       const minutes = Math.floor((remaining % 3600000) / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
