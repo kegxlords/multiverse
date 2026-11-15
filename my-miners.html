@@ -45,13 +45,13 @@
   <script src="assets/js/app.js"></script>
   <script>
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const isMiningOffDay = () => ['Sat', 'Sun'].includes(
+      new Intl.DateTimeFormat('en-US', { timeZone: 'Africa/Lagos', weekday: 'short' }).format(new Date())
+    );
     const remainingCountdown = target => {
+      if (isMiningOffDay()) return 'Off day — income resumes Monday';
       const remaining = new Date(target).getTime() - Date.now();
-      if (remaining <= 0) {
-        const day = new Date().getDay();
-        if (day === 0 || day === 6) return 'Weekend hold — pays next weekday';
-        return 'Income due — waiting for payout';
-      }
+      if (remaining <= 0) return 'Income due — waiting for payout';
       const hours = Math.floor(remaining / 3600000);
       const minutes = Math.floor((remaining % 3600000) / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
